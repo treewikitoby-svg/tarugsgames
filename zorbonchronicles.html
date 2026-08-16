@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>The Chronicles of Zorbon</title>
+<style>
+  :root{
+    --void:#08060f;
+    --panel:#120c22;
+    --panel-edge:#2a1b4a;
+    --text:#d9d2f0;
+    --dim:#7a6fa0;
+    --forehead:#ff9642;   /* Mitt's Forehead - incinerator/heat */
+    --mitt:#ff3d5a;       /* M.I.T.T. - military red */
+    --sagittarian:#b967ff;/* Sagittarian - political violet */
+    --credit:#3ddcc4;     /* currency teal */
+    --glunkoon:#7fffa0;   /* Gloongook ship green */
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%; background:var(--void); overflow:hidden;
+    font-family:'Consolas','Courier New',monospace; color:var(--text);
+  }
+  #app{
+    position:relative; width:100%; height:100vh; display:flex; flex-direction:column;
+  }
+  /* ---------- HUD ---------- */
+  #hud{
+    display:flex; align-items:stretch; gap:12px; padding:10px 14px;
+    background:linear-gradient(180deg,var(--panel),#0d081a);
+    border-bottom:1px solid var(--panel-edge); z-index:5; flex-wrap:wrap;
+  }
+  .hud-title{
+    font-weight:bold; letter-spacing:2px; color:var(--glunkoon); font-size:14px;
+    display:flex; flex-direction:column; justify-content:center; padding-right:10px;
+    border-right:1px solid var(--panel-edge); min-width:180px;
+  }
+  .hud-title small{color:var(--dim); font-weight:normal; letter-spacing:1px; font-size:10px;}
+  .meter-group{flex:1; min-width:160px;}
+  .meter-label{
+    display:flex; justify-content:space-between; font-size:10px; letter-spacing:1px;
+    text-transform:uppercase; margin-bottom:3px; color:var(--dim);
+  }
+  .meter-label span.val{color:var(--text); font-weight:bold;}
+  .meter-bar{
+    width:100%; height:10px; background:#1c1330; border:1px solid var(--panel-edge);
+    border-radius:3px; overflow:hidden; position:relative;
+  }
+  .meter-fill{height:100%; width:0%; transition:width .25s ease; }
+  .fill-forehead{background:linear-gradient(90deg,#ff9642,#ff5a2e);}
+  .fill-mitt{background:linear-gradient(90deg,#ff3d5a,#ff0033);}
+  .fill-sagittarian{background:linear-gradient(90deg,#b967ff,#7b2fe0);}
+  #creditsBox{
+    display:flex; flex-direction:column; justify-content:center; align-items:flex-end;
+    min-width:140px; border-left:1px solid var(--panel-edge); padding-left:12px;
+  }
+  #creditsBox .amt{color:var(--credit); font-size:20px; font-weight:bold;}
+  #creditsBox .lbl{font-size:10px; letter-spacing:1px; color:var(--dim);}
+  #timerBox{
+    display:flex; flex-direction:column; justify-content:center; align-items:flex-end;
+    min-width:110px;
+  }
+  #timerBox .amt{font-size:18px; font-weight:bold;}
+  #timerBox .lbl{font-size:10px; letter-spacing:1px; color:var(--dim);}
+
+  /* ---------- Main area ---------- */
+  #main{flex:1; display:flex; position:relative; min-height:0;}
+  #canvasWrap{flex:1; position:relative;}
+  canvas{display:block; background:radial-gradient(ellipse at 50% 30%,#160f2c,#08060f 70%); width:100%; height:100%;}
+
+  #sidebar{
+    width:250px; background:var(--panel); border-left:1px solid var(--panel-edge);
+    padding:14px; display:flex; flex-direction:column; gap:14px; overflow-y:auto;
+  }
+  .side-section h3{
+    margin:0 0 6px 0; font-size:11px; letter-spacing:2px; color:var(--dim); text-transform:uppercase;
+    border-bottom:1px dashed var(--panel-edge); padding-bottom:4px;
+  }
+  .fund-btn{
+    width:100%; text-align:left; background:#1c1330; border:1px solid var(--panel-edge);
+    color:var(--text); padding:10px; margin-top:6px; border-radius:5px; cursor:pointer;
+    font-family:inherit; font-size:12px; transition:all .15s ease;
+  }
+  .fund-btn:hover:not(:disabled){border-color:var(--credit); background:#241a3d; transform:translateX(2px);}
+  .fund-btn:disabled{opacity:.4; cursor:not-allowed;}
+  .fund-btn b{display:block; margin-bottom:2px;}
+  .fund-btn.forehead b{color:var(--forehead);}
+  .fund-btn.sagittarian b{color:var(--sagittarian);}
+  .cost-tag{color:var(--credit); font-size:11px;}
+
+  .legend-row{display:flex; align-items:center; gap:6px; font-size:11px; color:var(--dim); margin-top:4px;}
+  .dot{width:9px; height:9px; border-radius:50%; flex:0 0 auto;}
+
+  #log{
+    flex:1; min-height:80px; background:#0d081a; border:1px solid var(--panel-edge); border-radius:5px;
+    padding:8px; font-size:11px; color:var(--dim); overflow-y:auto;
+  }
+  #log div{margin-bottom:5px; line-height:1.4;}
+  #log div.good{color:var(--glunkoon);}
+  #log div.bad{color:var(--mitt);}
+
+  /* ---------- Modals ---------- */
+  #overlay, #councilOverlay{
+    position:absolute; inset:0; background:rgba(4,3,10,.85); display:none;
+    align-items:center; justify-content:center; z-index:20; backdrop-filter:blur(2px);
+    padding:20px;
+  }
+  #overlay.show, #councilOverlay.show{display:flex;}
+  .modal{
+    background:linear-gradient(180deg,#170f2c,#0d081a); border:1px solid var(--panel-edge);
+    border-radius:10px; padding:26px; max-width:520px; width:100%;
+    box-shadow:0 0 40px rgba(150,90,255,.15); max-height:90vh; overflow-y:auto;
+  }
+  .modal h2{margin:0 0 4px 0; color:var(--sagittarian); letter-spacing:1px; font-size:18px;}
+  .modal .sub{color:var(--dim); font-size:11px; letter-spacing:1px; margin-bottom:14px;}
+
+  .block-label{
+    font-size:10px; letter-spacing:2px; font-weight:bold; margin:14px 0 6px 0; text-transform:uppercase;
+  }
+  .label-happened{color:var(--mitt);}
+  .label-will{color:var(--credit);}
+  p.desc{font-size:13px; line-height:1.6; margin:0 0 4px 0; color:var(--text);}
+  .happened-box{
+    border-left:2px solid var(--mitt); padding:8px 12px; background:rgba(255,61,90,0.07); border-radius:0 4px 4px 0;
+  }
+  .happened-effect{font-size:11px; color:var(--forehead); margin-top:4px;}
+
+  .action-btn{
+    display:block; width:100%; text-align:left; background:#1c1330; border:1px solid var(--panel-edge);
+    color:var(--text); padding:10px 12px; margin-top:8px; border-radius:6px; cursor:pointer;
+    font-family:inherit; font-size:13px;
+  }
+  .action-btn:hover:not(:disabled){border-color:var(--credit); background:#241a3d;}
+  .action-btn:disabled{opacity:.5; cursor:default;}
+  .action-btn .lbl-main{display:block; font-weight:bold; margin-bottom:5px;}
+  .outcome-line{
+    display:flex; gap:6px; font-size:10.5px; color:var(--dim); margin-top:2px; line-height:1.4;
+  }
+  .outcome-chance{color:var(--credit); min-width:34px; flex:0 0 auto; font-weight:bold;}
+  #feedback{font-size:12px; color:var(--glunkoon); min-height:18px; margin-top:12px; border-top:1px dashed var(--panel-edge); padding-top:10px;}
+
+  #gameOver{position:absolute; inset:0; background:rgba(4,3,10,.92); display:none; align-items:center; justify-content:center; z-index:30;}
+  #gameOver.show{display:flex;}
+  #gameOver .modal{text-align:center; max-width:500px;}
+  #gameOver h1{font-size:26px; margin:0 0 10px 0; letter-spacing:2px;}
+  #gameOver p{color:var(--dim); font-size:13px; line-height:1.6;}
+  #restartBtn{
+    margin-top:16px; background:var(--glunkoon); color:#08060f; border:none; padding:12px 22px;
+    border-radius:6px; font-weight:bold; cursor:pointer; font-family:inherit; letter-spacing:1px;
+  }
+
+  /* Council session */
+  .cc-row{
+    display:flex; justify-content:space-between; align-items:center; padding:8px 10px;
+    background:#1c1330; border:1px solid var(--panel-edge); border-radius:5px; margin-top:6px; font-size:12px;
+  }
+  .cc-status{font-size:10px; letter-spacing:1px; padding:2px 8px; border-radius:10px; font-weight:bold;}
+  .cc-status.for{background:rgba(185,103,255,0.18); color:var(--sagittarian);}
+  .cc-status.against{background:rgba(127,255,160,0.18); color:var(--glunkoon);}
+  .cc-round-tag{font-size:11px; color:var(--dim); letter-spacing:1px; margin-bottom:10px;}
+  .cc-log{font-size:12px; line-height:1.6; margin:12px 0; color:var(--text);}
+  .cc-log .line{margin-bottom:4px;}
+  .cc-continue{
+    margin-top:14px; background:var(--credit); color:#08060f; border:none; padding:11px 20px;
+    border-radius:6px; font-weight:bold; cursor:pointer; font-family:inherit; letter-spacing:1px; width:100%;
+  }
+  .cc-tally{font-size:13px; margin:14px 0; padding:10px 12px; border-radius:6px; background:#0d081a; border:1px solid var(--panel-edge);}
+
+  #startScreen{position:absolute; inset:0; background:var(--void); display:flex; align-items:center; justify-content:center; z-index:40; flex-direction:column; text-align:center; padding:20px; overflow-y:auto;}
+  #startScreen h1{color:var(--glunkoon); letter-spacing:3px; font-size:30px; margin-bottom:6px;}
+  #startScreen h2{color:var(--dim); font-weight:normal; font-size:13px; letter-spacing:1px; margin-top:0;}
+  #startScreen .rules{max-width:580px; font-size:12px; line-height:1.7; color:var(--text); text-align:left; background:var(--panel); border:1px solid var(--panel-edge); padding:18px 22px; border-radius:8px; margin:18px 0;}
+  #startScreen .rules b{color:var(--sagittarian);}
+  #startScreen .rules .credit-note{color:var(--credit);}
+  #startBtn{background:var(--glunkoon); color:#08060f; border:none; padding:14px 30px; border-radius:6px; font-weight:bold; font-size:14px; letter-spacing:1px; cursor:pointer; font-family:inherit;}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <div id="hud">
+    <div class="hud-title">CMDR. GLOONGOOK
+      <small>of Glunkoon &mdash; Zorbonian High Command</small>
+    </div>
+    <div class="meter-group">
+      <div class="meter-label"><span>Mitt's Forehead</span><span class="val" id="foreheadVal">0%</span></div>
+      <div class="meter-bar"><div class="meter-fill fill-forehead" id="foreheadBar"></div></div>
+    </div>
+    <div class="meter-group">
+      <div class="meter-label"><span>M.I.T.T. Incursion</span><span class="val" id="mittVal">0%</span></div>
+      <div class="meter-bar"><div class="meter-fill fill-mitt" id="mittBar"></div></div>
+    </div>
+    <div class="meter-group">
+      <div class="meter-label"><span>Sagittarian Lobbying</span><span class="val" id="sagVal">0%</span></div>
+      <div class="meter-bar"><div class="meter-fill fill-sagittarian" id="sagBar"></div></div>
+    </div>
+    <div id="creditsBox"><div class="amt" id="creditsVal">100</div><div class="lbl">ZIP ZAPS &middot; MISSILE COST 25</div></div>
+    <div id="timerBox"><div class="amt" id="timerVal">3:00</div><div class="lbl">UNTIL COUNCIL VOTE</div></div>
+  </div>
+
+  <div id="main">
+    <div id="canvasWrap">
+      <canvas id="game"></canvas>
+      <div id="overlay">
+        <div class="modal">
+          <h2 id="evTitle">Event</h2>
+          <div class="sub">INCOMING TRANSMISSION</div>
+
+          <div class="block-label label-happened">Has Happened</div>
+          <div class="happened-box">
+            <p class="desc" id="evDesc"></p>
+            <div class="happened-effect" id="evHappenedEffect"></div>
+          </div>
+
+          <div class="block-label label-will">Will Happen &mdash; choose your response</div>
+          <div id="evActions"></div>
+          <div id="feedback"></div>
+        </div>
+      </div>
+
+      <div id="councilOverlay">
+        <div class="modal" id="councilModal"></div>
+      </div>
+
+      <div id="gameOver">
+        <div class="modal">
+          <h1 id="goTitle">GAME OVER</h1>
+          <p id="goDesc"></p>
+          <button id="restartBtn">RETRY MISSION</button>
+        </div>
+      </div>
+
+      <div id="startScreen">
+        <h1>THE CHRONICLES OF ZORBON</h1>
+        <h2>a real-time command of Commander Gloongook</h2>
+        <div class="rules">
+          Three threats bear down on the Zorbonian people:<br><br>
+          <b>Mitt's Forehead</b> &mdash; a rising, radiant menace. Fund <b>Incinerators</b> from the sidebar to burn its power back. If it ever reaches 100%, Zorbon falls immediately.<br>
+          <b>The M.I.T.T.</b> &mdash; hostile fighters swarming your sector. Fly Gloongook with <b>WASD</b> and fire missiles with the <b>arrow keys</b> to shoot them down. <span class="credit-note">Each missile costs 25 Zip Zaps</span>. If M.I.T.T. Incursion ever reaches 100%, Zorbon falls immediately.<br>
+          <b>The Sagittarians</b> &mdash; lobbying the Allied Council for entry. Fund <b>Diplomacy</b> from the sidebar to quiet them. This meter doesn't end the game early &mdash; instead it decides how hard the final vote will be.<br><br>
+          Random <b>events</b> interrupt with something that has <b>already happened</b>, then ask how you respond. Each choice previews its possible outcomes and odds &mdash; but the result is rolled live.<br><br>
+          Survive the clock without Forehead or M.I.T.T. hitting 100%, and it goes to the <b>Allied Council vote</b>. Zorba-274 (you) automatically votes against admitting the Sagittarians. You then get 3 rounds to personally lobby the Ambassadors of Andromeda, Zorba-275, and Milky Way &mdash; while Sagittarian lobbyists work against you. Win if at least one ambassador joins your "no" vote.
+        </div>
+        <button id="startBtn">TAKE COMMAND</button>
+      </div>
+    </div>
+
+    <div id="sidebar">
+      <div class="side-section">
+        <h3>Strategic Funding</h3>
+        <button class="fund-btn forehead" id="btnForehead">
+          <b>Fund Incinerators</b>
+          Cools Mitt's Forehead by 12%
+          <span class="cost-tag">Cost: 25 Zip Zaps</span>
+        </button>
+        <button class="fund-btn sagittarian" id="btnSagittarian">
+          <b>Fund Diplomacy</b>
+          Quiets Sagittarian lobbying by 12%
+          <span class="cost-tag">Cost: 25 Zip Zaps</span>
+        </button>
+      </div>
+      <div class="side-section">
+        <h3>Legend</h3>
+        <div class="legend-row"><div class="dot" style="background:var(--glunkoon)"></div> Gloongook (you)</div>
+        <div class="legend-row"><div class="dot" style="background:var(--mitt)"></div> M.I.T.T. fighter</div>
+        <div class="legend-row"><div class="dot" style="background:var(--credit)"></div> Missile &mdash; 25zz/shot</div>
+      </div>
+      <div class="side-section" style="flex:1; display:flex; flex-direction:column; min-height:0;">
+        <h3>Command Log</h3>
+        <div id="log"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  function clamp(v){ return Math.max(0, Math.min(100, v)); }
+  function randRange(a,b){ return a + Math.random()*(b-a); }
+
+  /* =========================================================
+     EVENT SYSTEM — copy/paste GameEvent instances into EVENT_POOL
+     CK3-style: "Has Happened" applies immediately and unavoidably
+     when the event fires. "Will Happen" actions each list one or
+     more possible outcomes with odds; the actual outcome is rolled
+     when the player picks that action.
+     ========================================================= */
+  class GameEvent {
+    constructor({title, hasHappened, hasHappenedEffect, actions}){
+      this.title = title;
+      this.hasHappened = hasHappened;             // description text, applied automatically
+      this.hasHappenedEffect = hasHappenedEffect;  // (state)=>void, applied automatically on trigger
+      this.actions = actions;                      // [{label, outcomes:[{chance, preview, flavor, effect(state)}]}]
+    }
+  }
+
+  function pickOutcome(outcomes){
+    const r = Math.random();
+    let acc = 0;
+    for(const o of outcomes){
+      acc += o.chance;
+      if(r <= acc) return o;
+    }
+    return outcomes[outcomes.length-1];
+  }
+
+  const EVENT_POOL = [
+    new GameEvent({
+      title: "Incinerator Core Failure",
+      hasHappened: "The incinerator core on Glunkoon has failed without warning, mid-burn cycle.",
+      hasHappenedEffect: (s)=>{ s.forehead = clamp(s.forehead + 15); },
+      actions: [
+        { label:"Scramble emergency repair crews (25zz)", outcomes:[
+          { chance:0.7, preview:"Repaired — Forehead -20%", flavor:"Vluk's crew works a miracle. The core roars back to life, stronger than before.", effect:(s)=>{ s.zipZaps-=25; s.forehead=clamp(s.forehead-20);} },
+          { chance:0.3, preview:"Repairs fail — Forehead +5% more, Zip Zaps still spent", flavor:"The patch job doesn't hold. Materials wasted, the forehead surges further.", effect:(s)=>{ s.zipZaps-=25; s.forehead=clamp(s.forehead+5);} },
+        ]},
+        { label:"Requisition a backup core (50zz)", outcomes:[
+          { chance:1.0, preview:"Guaranteed — Forehead -15%", flavor:"An expensive but reliable swap. The reserve core comes online clean.", effect:(s)=>{ s.zipZaps-=50; s.forehead=clamp(s.forehead-15);} },
+        ]},
+        { label:"Let it idle, save the Zip Zaps", outcomes:[
+          { chance:1.0, preview:"Guaranteed — Forehead +10% more", flavor:"No repairs ordered. The forehead's glow only intensifies.", effect:(s)=>{ s.forehead=clamp(s.forehead+10);} },
+        ]},
+      ]
+    }),
+
+    new GameEvent({
+      title: "Emergency Council Session",
+      hasHappened: "Sagittarian ambassadors have petitioned three Allied worlds directly for early admission.",
+      hasHappenedEffect: (s)=>{ s.sagittarian = clamp(s.sagittarian + 8); },
+      actions: [
+        { label:"Bribe the swing delegates (30zz)", outcomes:[
+          { chance:0.5, preview:"Works — Sagittarian lobbying -20%", flavor:"Zip Zaps change hands quietly. The petition quietly stalls.", effect:(s)=>{ s.zipZaps-=30; s.sagittarian=clamp(s.sagittarian-20);} },
+          { chance:0.5, preview:"Exposed — Sagittarian lobbying +25%, M.I.T.T. +5%", flavor:"The bribe leaks to the press. Zorbon's credibility — and the Council's patience — take a hit.", effect:(s)=>{ s.zipZaps-=30; s.sagittarian=clamp(s.sagittarian+25); s.mitt=clamp(s.mitt+5);} },
+        ]},
+        { label:"Denounce them on the council floor", outcomes:[
+          { chance:0.65, preview:"Rallies allies — Sagittarian lobbying -12%", flavor:"A fiery, well-aimed speech turns several delegates against the petition.", effect:(s)=>{ s.sagittarian=clamp(s.sagittarian-12);} },
+          { chance:0.35, preview:"Backfires — Sagittarian lobbying +10%, M.I.T.T. +5%", flavor:"Zorbon is painted as the aggressor. Sympathy swings toward the Sagittarians.", effect:(s)=>{ s.sagittarian=clamp(s.sagittarian+10); s.mitt=clamp(s.mitt+5);} },
+        ]},
+        { label:"Ignore it, you have a war to fight", outcomes:[
+          { chance:1.0, preview:"Guaranteed — Sagittarian lobbying +12%", flavor:"The petition gains ground unopposed.", effect:(s)=>{ s.sagittarian=clamp(s.sagittarian+12);} },
+        ]},
+      ]
+    }),
+
+    new GameEvent({
+      title: "M.I.T.T. Reinforcements Detected",
+      hasHappened: "Long-range sensors confirm a second M.I.T.T. wing has entered the system.",
+      hasHappenedEffect: (s)=>{ s.mitt = clamp(s.mitt + 10); },
+      actions: [
+        { label:"Order a preemptive strike (20zz)", outcomes:[
+          { chance:0.6, preview:"Ambush succeeds — M.I.T.T. -25%", flavor:"Gloongook's squadron catches the wing before it forms up.", effect:(s)=>{ s.zipZaps-=20; s.mitt=clamp(s.mitt-25);} },
+          { chance:0.4, preview:"Ambush fails — M.I.T.T. +10% more", flavor:"They saw it coming. The strike wastes fuel and emboldens the wing.", effect:(s)=>{ s.zipZaps-=20; s.mitt=clamp(s.mitt+10);} },
+        ]},
+        { label:"Fortify Glunkoon's defenses (15zz)", outcomes:[
+          { chance:1.0, preview:"Guaranteed — M.I.T.T. -8%", flavor:"Shields hold firm, absorbing the brunt of the assault.", effect:(s)=>{ s.zipZaps-=15; s.mitt=clamp(s.mitt-8);} },
+        ]},
+        { label:"Fall back and regroup", outcomes:[
+          { chance:1.0, preview:"Guaranteed — Zip Zaps +10, M.I.T.T. +8%", flavor:"You save resources, but the wing presses closer to Glunkoon.", effect:(s)=>{ s.zipZaps+=10; s.mitt=clamp(s.mitt+8);} },
+        ]},
+      ]
+    }),
+
+    new GameEvent({
+      title: "Mysterious Benefactor",
+      hasHappened: "An anonymous transmission has offered Zorbon a substantial Zip Zap transfer — no strings mentioned.",
+      hasHappenedEffect: null,
+      actions: [
+        { label:"Accept the Zip Zaps", outcomes:[
+          { chance:0.75, preview:"Legitimate — Zip Zaps +60", flavor:"The funds land in the treasury, clean and untraceable.", effect:(s)=>{ s.zipZaps+=60;} },
+          { chance:0.25, preview:"It's a trap — Zip Zaps -20, M.I.T.T. +10%", flavor:"A M.I.T.T. trojan payload rides in on the transfer, exposing your position.", effect:(s)=>{ s.zipZaps=Math.max(0,s.zipZaps-20); s.mitt=clamp(s.mitt+10);} },
+        ]},
+        { label:"Trace the source first", outcomes:[
+          { chance:1.0, preview:"Guaranteed — Sagittarian lobbying -4%", flavor:"The trace reveals nothing conclusive, but the diligence earns quiet respect.", effect:(s)=>{ s.sagittarian=clamp(s.sagittarian-4);} },
+        ]},
+        { label:"Refuse on principle", outcomes:[
+          { chance:1.0, preview:"Guaranteed — Sagittarian lobbying -8%", flavor:"Zorbon's integrity is noted favorably by the Allied Council.", effect:(s)=>{ s.sagittarian=clamp(s.sagittarian-8);} },
+        ]},
+      ]
+    }),
+
+    new GameEvent({
+      title: "Sagittarian Defector",
+      hasHappened: "A disillusioned Sagittarian diplomat has reached out to Zorbon intelligence, offering inside knowledge.",
+      hasHappenedEffect: null,
+      actions: [
+        { label:"Pay for the intel (35zz)", outcomes:[
+          { chance:0.8, preview:"Genuine — Sagittarian lobbying -25%", flavor:"The defector's files gut the lobbying campaign's momentum overnight.", effect:(s)=>{ s.zipZaps-=35; s.sagittarian=clamp(s.sagittarian-25);} },
+          { chance:0.2, preview:"Double agent — Sagittarian lobbying +15%, M.I.T.T. +5%", flavor:"It was a setup. Zorbon's positions leak straight back to the Council.", effect:(s)=>{ s.zipZaps-=35; s.sagittarian=clamp(s.sagittarian+15); s.mitt=clamp(s.mitt+5);} },
+        ]},
+        { label:"Offer asylum instead of Zip Zaps", outcomes:[
+          { chance:1.0, preview:"Guaranteed — Sagittarian lobbying -10%", flavor:"Goodwill earns loyalty, and a useful ally within their ranks.", effect:(s)=>{ s.sagittarian=clamp(s.sagittarian-10);} },
+        ]},
+        { label:"Suspect a trap, decline", outcomes:[
+          { chance:1.0, preview:"Guaranteed — nothing changes", flavor:"You play it safe. The defector vanishes back into the crowd.", effect:(s)=>{} },
+        ]},
+      ]
+    }),
+
+    new GameEvent({
+      title: "Solar Flare Over Glunkoon",
+      hasHappened: "A violent solar flare has knocked out secondary systems planet-wide, damaging infrastructure.",
+      hasHappenedEffect: (s)=>{ s.zipZaps = Math.max(0, s.zipZaps - 10); },
+      actions: [
+        { label:"Divert power to incinerators", outcomes:[
+          { chance:0.8, preview:"Stabilized — Forehead -10%", flavor:"The burn cycle continues uninterrupted, ahead of schedule even.", effect:(s)=>{ s.forehead=clamp(s.forehead-10);} },
+          { chance:0.2, preview:"Overloads instead — Forehead +8%", flavor:"The extra power surges wrong. A relay blows, and the forehead flares.", effect:(s)=>{ s.forehead=clamp(s.forehead+8);} },
+        ]},
+        { label:"Divert power to fleet shields", outcomes:[
+          { chance:0.8, preview:"Stabilized — M.I.T.T. -10%", flavor:"Gloongook's squadron rides out the flare completely unharmed.", effect:(s)=>{ s.mitt=clamp(s.mitt-10);} },
+          { chance:0.2, preview:"Overloads instead — M.I.T.T. +8%", flavor:"Shield feedback scrambles sensors, letting a M.I.T.T. patrol slip closer.", effect:(s)=>{ s.mitt=clamp(s.mitt+8);} },
+        ]},
+        { label:"Divert power to the embassy", outcomes:[
+          { chance:0.8, preview:"Stabilized — Sagittarian lobbying -10%", flavor:"Diplomatic channels stay open through the crisis, a show of resilience.", effect:(s)=>{ s.sagittarian=clamp(s.sagittarian-10);} },
+          { chance:0.2, preview:"Overloads instead — Sagittarian lobbying +8%", flavor:"A garbled transmission is misread as a snub by the Council.", effect:(s)=>{ s.sagittarian=clamp(s.sagittarian+8);} },
+        ]},
+      ]
+    }),
+
+    new GameEvent({
+      title: "War Bonds Proposal",
+      hasHappened: "The Treasury has proposed issuing war bonds to the citizens of Glunkoon to fund the war effort immediately.",
+      hasHappenedEffect: null,
+      actions: [
+        { label:"Issue the bonds", outcomes:[
+          { chance:0.85, preview:"Citizens buy in — Zip Zaps +50, Sagittarian +3%", flavor:"Patriotic fervor sweeps Glunkoon. The treasury swells overnight.", effect:(s)=>{ s.zipZaps+=50; s.sagittarian=clamp(s.sagittarian+3);} },
+          { chance:0.15, preview:"Public backlash — Zip Zaps +15, Sagittarian +15%", flavor:"Citizens accuse the government of desperation. The Sagittarians seize the narrative.", effect:(s)=>{ s.zipZaps+=15; s.sagittarian=clamp(s.sagittarian+15);} },
+        ]},
+        { label:"Reject — protect citizens", outcomes:[
+          { chance:1.0, preview:"Guaranteed — M.I.T.T. +3%", flavor:"Public trust holds, but the war effort feels the funding gap.", effect:(s)=>{ s.mitt=clamp(s.mitt+3);} },
+        ]},
+      ]
+    }),
+  ];
+
+  /* =========================================================
+     GAME STATE
+     ========================================================= */
+  const state = {
+    zipZaps: 100,
+    forehead: 8,
+    mitt: 10,
+    sagittarian: 6,
+    timeLeft: 180, // seconds until council vote
+    running: false,
+    paused: false, // true while an event modal is open
+  };
+
+  const FOREHEAD_GROWTH = 0.35;
+  const MITT_GROWTH = 0.12;
+  const SAG_GROWTH = 0.28;
+  const MISSILE_COST = 25;
+
+  /* =========================================================
+     DOM refs
+     ========================================================= */
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+  const wrap = document.getElementById('canvasWrap');
+  const foreheadBar = document.getElementById('foreheadBar');
+  const mittBar = document.getElementById('mittBar');
+  const sagBar = document.getElementById('sagBar');
+  const foreheadVal = document.getElementById('foreheadVal');
+  const mittVal = document.getElementById('mittVal');
+  const sagVal = document.getElementById('sagVal');
+  const creditsVal = document.getElementById('creditsVal');
+  const timerVal = document.getElementById('timerVal');
+  const overlay = document.getElementById('overlay');
+  const evTitle = document.getElementById('evTitle');
+  const evDesc = document.getElementById('evDesc');
+  const evHappenedEffect = document.getElementById('evHappenedEffect');
+  const evActions = document.getElementById('evActions');
+  const feedback = document.getElementById('feedback');
+  const gameOver = document.getElementById('gameOver');
+  const goTitle = document.getElementById('goTitle');
+  const goDesc = document.getElementById('goDesc');
+  const restartBtn = document.getElementById('restartBtn');
+  const btnForehead = document.getElementById('btnForehead');
+  const btnSagittarian = document.getElementById('btnSagittarian');
+  const logEl = document.getElementById('log');
+  const startScreen = document.getElementById('startScreen');
+  const startBtn = document.getElementById('startBtn');
+  const councilOverlay = document.getElementById('councilOverlay');
+  const councilModal = document.getElementById('councilModal');
+
+  function resizeCanvas(){
+    canvas.width = wrap.clientWidth;
+    canvas.height = wrap.clientHeight;
+  }
+  window.addEventListener('resize', resizeCanvas);
+
+  function log(msg, cls){
+    const d = document.createElement('div');
+    if(cls) d.className = cls;
+    d.textContent = msg;
+    logEl.prepend(d);
+    while(logEl.children.length > 40) logEl.removeChild(logEl.lastChild);
+  }
+
+  /* =========================================================
+     PLAYER — Commander Gloongook
+     ========================================================= */
+  const player = {
+    x: 400, y: 300, r: 14, speed: 240, angle: 0
+  };
+
+  const keys = {};
+  window.addEventListener('keydown', (e)=>{
+    keys[e.key.toLowerCase()] = true;
+    if(["arrowup","arrowdown","arrowleft","arrowright"," ","w","a","s","d"].includes(e.key.toLowerCase())){
+      e.preventDefault();
+    }
+    if(state.running && !state.paused){
+      handleAim(e.key.toLowerCase());
+    }
+  });
+  window.addEventListener('keyup', (e)=>{ keys[e.key.toLowerCase()] = false; });
+
+  let missileCooldown = 0;
+  let insufficientNotice = 0;
+  const missiles = [];
+  const AIM_DIRS = {
+    arrowup:    {dx:0, dy:-1},
+    arrowdown:  {dx:0, dy:1},
+    arrowleft:  {dx:-1,dy:0},
+    arrowright: {dx:1, dy:0},
+  };
+
+  function handleAim(key){
+    if(!AIM_DIRS[key]) return;
+    if(missileCooldown > 0) return;
+    const d = AIM_DIRS[key];
+    player.angle = Math.atan2(d.dy, d.dx);
+
+    if(state.zipZaps < MISSILE_COST){
+      if(insufficientNotice <= 0){
+        log(`Insufficient Zip Zaps to fire! (Need ${MISSILE_COST})`, "bad");
+        insufficientNotice = 1.2;
+      }
+      return;
+    }
+
+    state.zipZaps -= MISSILE_COST;
+    missiles.push({
+      x: player.x, y: player.y,
+      vx: d.dx * 480, vy: d.dy * 480,
+      r: 4
+    });
+    missileCooldown = 0.18;
+  }
+
+  /* =========================================================
+     ENEMIES — M.I.T.T. fighters
+     ========================================================= */
+  const enemies = [];
+  let spawnTimer = 2;
+
+  function spawnEnemy(){
+    const edge = Math.floor(Math.random()*4);
+    let x,y;
+    const w = canvas.width, h = canvas.height;
+    if(edge===0){ x = -20; y = Math.random()*h; }
+    else if(edge===1){ x = w+20; y = Math.random()*h; }
+    else if(edge===2){ x = Math.random()*w; y = -20; }
+    else { x = Math.random()*w; y = h+20; }
+    enemies.push({
+      x, y, r: 12,
+      speed: 55 + Math.random()*45,
+      wobble: Math.random()*Math.PI*2,
+    });
+  }
+
+  /* =========================================================
+     PARTICLES (simple explosion puffs)
+     ========================================================= */
+  const particles = [];
+  function burst(x,y,color){
+    for(let i=0;i<10;i++){
+      particles.push({
+        x,y, vx:(Math.random()-0.5)*180, vy:(Math.random()-0.5)*180,
+        life: 0.5, color
+      });
+    }
+  }
+
+  /* =========================================================
+     EVENT TRIGGERING
+     ========================================================= */
+  let nextEventIn = randRange(10, 16);
+
+  function triggerRandomEvent(){
+    const ev = EVENT_POOL[Math.floor(Math.random()*EVENT_POOL.length)];
+    showEvent(ev);
+  }
+
+  function fmtDelta(before, after, name){
+    const d = Math.round(after-before);
+    if(d===0) return null;
+    return `${name} ${d>0?'+':''}${d}%`;
+  }
+
+  function showEvent(ev){
+    state.paused = true;
+    evTitle.textContent = ev.title;
+    evDesc.textContent = ev.hasHappened;
+
+    evHappenedEffect.textContent = "";
+    if(ev.hasHappenedEffect){
+      const before = {forehead:state.forehead, mitt:state.mitt, sagittarian:state.sagittarian, zipZaps:state.zipZaps};
+      ev.hasHappenedEffect(state);
+      const parts = [
+        fmtDelta(before.forehead, state.forehead, "Mitt's Forehead"),
+        fmtDelta(before.mitt, state.mitt, "M.I.T.T."),
+        fmtDelta(before.sagittarian, state.sagittarian, "Sagittarian Lobbying"),
+        (state.zipZaps!==before.zipZaps ? `Zip Zaps ${Math.round(state.zipZaps-before.zipZaps)}` : null),
+      ].filter(Boolean);
+      evHappenedEffect.textContent = parts.length ? "Immediate effect: " + parts.join(", ") : "";
+    }
+
+    evActions.innerHTML = "";
+    feedback.textContent = "";
+    ev.actions.forEach(act=>{
+      const btn = document.createElement('button');
+      btn.className = 'action-btn';
+
+      const mainLbl = document.createElement('span');
+      mainLbl.className = 'lbl-main';
+      mainLbl.textContent = act.label;
+      btn.appendChild(mainLbl);
+
+      act.outcomes.forEach(o=>{
+        const line = document.createElement('div');
+        line.className = 'outcome-line';
+        const pct = document.createElement('span');
+        pct.className = 'outcome-chance';
+        pct.textContent = Math.round(o.chance*100) + '%:';
+        const txt = document.createElement('span');
+        txt.textContent = o.preview;
+        line.appendChild(pct);
+        line.appendChild(txt);
+        btn.appendChild(line);
+      });
+
+      btn.onclick = ()=>{
+        const rolled = pickOutcome(act.outcomes);
+        rolled.effect(state);
+        feedback.textContent = rolled.flavor;
+        log(`[Decision] ${ev.title}: ${act.label}`, "good");
+        Array.from(evActions.children).forEach(b=>b.disabled=true);
+        setTimeout(()=>{
+          overlay.classList.remove('show');
+          state.paused = false;
+          nextEventIn = randRange(14, 24);
+        }, 1100);
+      };
+      evActions.appendChild(btn);
+    });
+    overlay.classList.add('show');
+  }
+
+  /* =========================================================
+     SIDEBAR FUNDING BUTTONS
+     ========================================================= */
+  btnForehead.addEventListener('click', ()=>{
+    if(state.zipZaps < 25 || !state.running) return;
+    state.zipZaps -= 25;
+    state.forehead = clamp(state.forehead - 12);
+    log("Incinerators funded — Mitt's Forehead cooled.", "good");
+  });
+  btnSagittarian.addEventListener('click', ()=>{
+    if(state.zipZaps < 25 || !state.running) return;
+    state.zipZaps -= 25;
+    state.sagittarian = clamp(state.sagittarian - 12);
+    log("Diplomats funded — Sagittarian lobbying quieted.", "good");
+  });
+
+  /* =========================================================
+     MAIN LOOP
+     ========================================================= */
+  let lastTime = null;
+  function loop(ts){
+    if(!state.running){ return; }
+    if(lastTime === null) lastTime = ts;
+    let dt = (ts - lastTime) / 1000;
+    dt = Math.min(dt, 0.05);
+    lastTime = ts;
+
+    if(!state.paused){
+      update(dt);
+    }
+    render();
+    updateHud();
+
+    requestAnimationFrame(loop);
+  }
+
+  function update(dt){
+    // movement
+    let dx=0, dy=0;
+    if(keys['w']) dy -= 1;
+    if(keys['s']) dy += 1;
+    if(keys['a']) dx -= 1;
+    if(keys['d']) dx += 1;
+    if(dx!==0 || dy!==0){
+      const len = Math.hypot(dx,dy);
+      player.x += (dx/len) * player.speed * dt;
+      player.y += (dy/len) * player.speed * dt;
+    }
+    player.x = Math.max(player.r, Math.min(canvas.width - player.r, player.x));
+    player.y = Math.max(player.r, Math.min(canvas.height - player.r, player.y));
+
+    if(missileCooldown > 0) missileCooldown -= dt;
+    if(insufficientNotice > 0) insufficientNotice -= dt;
+
+    // missiles
+    for(let i=missiles.length-1;i>=0;i--){
+      const m = missiles[i];
+      m.x += m.vx*dt; m.y += m.vy*dt;
+      if(m.x<-30||m.x>canvas.width+30||m.y<-30||m.y>canvas.height+30){
+        missiles.splice(i,1);
+      }
+    }
+
+    // spawn enemies
+    spawnTimer -= dt;
+    if(spawnTimer <= 0){
+      spawnEnemy();
+      spawnTimer = Math.max(0.6, 1.8 - state.mitt/60);
+    }
+
+    // move enemies toward player with a little wobble
+    for(let i=enemies.length-1;i>=0;i--){
+      const en = enemies[i];
+      en.wobble += dt*2;
+      const ang = Math.atan2(player.y-en.y, player.x-en.x) + Math.sin(en.wobble)*0.35;
+      en.x += Math.cos(ang)*en.speed*dt;
+      en.y += Math.sin(ang)*en.speed*dt;
+
+      // collide with player
+      if(Math.hypot(en.x-player.x, en.y-player.y) < en.r+player.r){
+        enemies.splice(i,1);
+        burst(en.x,en.y,'#ff3d5a');
+        state.mitt = clamp(state.mitt + 8);
+        log("A M.I.T.T. fighter slipped past Gloongook's guard!", "bad");
+        continue;
+      }
+
+      // collide with missiles
+      for(let j=missiles.length-1;j>=0;j--){
+        const m = missiles[j];
+        if(Math.hypot(en.x-m.x, en.y-m.y) < en.r+m.r){
+          enemies.splice(i,1);
+          missiles.splice(j,1);
+          burst(en.x,en.y,'#3ddcc4');
+          state.mitt = clamp(state.mitt - 3);
+          break;
+        }
+      }
+    }
+
+    // particles
+    for(let i=particles.length-1;i>=0;i--){
+      const p = particles[i];
+      p.x += p.vx*dt; p.y += p.vy*dt; p.life -= dt;
+      if(p.life<=0) particles.splice(i,1);
+    }
+
+    // passive threat growth + Zip Zap trickle
+    state.forehead = clamp(state.forehead + FOREHEAD_GROWTH*dt);
+    state.mitt = clamp(state.mitt + MITT_GROWTH*dt);
+    state.sagittarian = clamp(state.sagittarian + SAG_GROWTH*dt);
+    state.zipZaps += 3*dt;
+
+    // event timer
+    nextEventIn -= dt;
+    if(nextEventIn <= 0){
+      triggerRandomEvent();
+    }
+
+    // mission timer
+    state.timeLeft -= dt;
+
+    checkEndConditions();
+  }
+
+  function checkEndConditions(){
+    if(state.forehead >= 100){
+      endGame(false, "MITT'S FOREHEAD OVERLOADS", "The incinerators never caught up. Its radiant fury consumes Glunkoon's shield grid. Zorbon falls before the Council ever convenes.");
+    } else if(state.mitt >= 100){
+      endGame(false, "M.I.T.T. BREAKS THROUGH", "The fighter swarm overwhelms Gloongook's squadron. Zorbon's skies fall silent before the Council ever convenes.");
+    } else if(state.timeLeft <= 0){
+      state.running = false;
+      startCouncilPhase();
+    }
+  }
+
+  function endGame(won, title, desc){
+    state.running = false;
+    goTitle.textContent = title;
+    goTitle.style.color = won ? 'var(--glunkoon)' : 'var(--mitt)';
+    goDesc.textContent = desc;
+    gameOver.classList.add('show');
+  }
+
+  /* =========================================================
+     COUNCIL VOTE — final phase
+     Zorba-274 (you) automatically votes against admission.
+     3 rounds, alternating: you lobby one ambassador, then
+     Sagittarian lobbyists make their counter-move. Convince
+     at least 1 of the 3 ambassadors and you win (2+ "no" votes
+     total). Odds are set by the frozen Sagittarian Lobbying meter.
+     ========================================================= */
+  let council = null;
+
+  function startCouncilPhase(){
+    const sagFinal = Math.round(clamp(state.sagittarian));
+    council = {
+      ambassadors: [
+        { key:"andromeda", name:"Ambassador from Andromeda", against:false },
+        { key:"zorba275",  name:"Ambassador from Zorba-275", against:false },
+        { key:"milkyway",  name:"Ambassador from Milky Way", against:false },
+      ],
+      round: 1,
+      sagFinal,
+      sagChance: sagFinal/100,
+      playerChance: 1 - sagFinal/100,
+    };
+    ccRenderIntro();
+    councilOverlay.classList.add('show');
+  }
+
+  function ccAmbassadorRows(){
+    return council.ambassadors.map(a=>{
+      const cls = a.against ? 'against' : 'for';
+      const txt = a.against ? 'VOTING NO' : 'LEANING YES';
+      return `<div class="cc-row"><span>${a.name}</span><span class="cc-status ${cls}">${txt}</span></div>`;
+    }).join('');
+  }
+
+  function ccRenderIntro(){
+    councilModal.innerHTML = `
+      <h2>Allied Council Convenes</h2>
+      <div class="sub">FINAL VOTE &mdash; SAGITTARIAN ADMISSION</div>
+      <p class="desc">Zorba-274's seat is automatically cast <b>against</b> admitting the Sagittarians. That's 1 vote in your favor. Convince at least one of the three Ambassadors below to also vote no, and the admission is blocked.</p>
+      <p class="desc">Sagittarian Lobbying closed at <b>${council.sagFinal}%</b> &mdash; your odds to convince any ambassador: <b>${Math.round(council.playerChance*100)}%</b>. Their odds to sway or hold one: <b>${Math.round(council.sagChance*100)}%</b>.</p>
+      ${ccAmbassadorRows()}
+      <button class="cc-continue" id="ccBegin">BEGIN ROUND 1 OF 3</button>
+    `;
+    document.getElementById('ccBegin').onclick = ccRenderPick;
+  }
+
+  function ccRenderPick(){
+    councilModal.innerHTML = `
+      <h2>Round ${council.round} of 3</h2>
+      <div class="sub">YOUR TURN &mdash; CHOOSE WHO TO LOBBY</div>
+      <p class="desc">Commander Gloongook has one audience left this round. Who does he lobby personally?</p>
+      ${council.ambassadors.map((a,i)=>`<button class="action-btn" data-idx="${i}"><span class="lbl-main">${a.name}</span><span class="outcome-line"><span>Currently: ${a.against?'voting no':'leaning yes'}</span></span></button>`).join('')}
+    `;
+    Array.from(councilModal.querySelectorAll('.action-btn')).forEach(btn=>{
+      btn.onclick = ()=> ccResolveRound(parseInt(btn.dataset.idx,10));
+    });
+  }
+
+  function ccResolveRound(idx){
+    const target = council.ambassadors[idx];
+    const lines = [];
+
+    const playerSuccess = Math.random() < council.playerChance;
+    if(playerSuccess){
+      target.against = true;
+      lines.push(`<div class="line">✅ Gloongook convinces the ${target.name} to vote <b>against</b> admission.</div>`);
+      log(`Council: ${target.name} now leaning NO.`, "good");
+    } else {
+      lines.push(`<div class="line">❌ The ${target.name} is unmoved by Gloongook's appeal.</div>`);
+      log(`Council: ${target.name} resists Gloongook's lobbying.`, "bad");
+    }
+
+    const againstList = council.ambassadors.filter(a=>a.against);
+    const sagTarget = againstList.length>0
+      ? againstList[Math.floor(Math.random()*againstList.length)]
+      : council.ambassadors[Math.floor(Math.random()*council.ambassadors.length)];
+    const sagSuccess = Math.random() < council.sagChance;
+    if(sagSuccess){
+      if(sagTarget.against){
+        sagTarget.against = false;
+        lines.push(`<div class="line">✅ Sagittarian lobbyists corner the ${sagTarget.name} and reverse their vote back to <b>yes</b>.</div>`);
+        log(`Council: Sagittarian lobbyists flip ${sagTarget.name} back to YES.`, "bad");
+      } else {
+        lines.push(`<div class="line">✅ Sagittarian lobbyists reinforce the ${sagTarget.name}'s support for admission.</div>`);
+        log(`Council: Sagittarian lobbyists reinforce ${sagTarget.name}.`, "bad");
+      }
+    } else {
+      lines.push(`<div class="line">❌ Sagittarian lobbyists fail to move the ${sagTarget.name}.</div>`);
+      log(`Council: Sagittarian lobbyists fail on ${sagTarget.name}.`, "good");
+    }
+
+    councilModal.innerHTML = `
+      <h2>Round ${council.round} of 3 &mdash; Result</h2>
+      <div class="sub">YOUR MOVE, THEN THEIRS</div>
+      <div class="cc-log">${lines.join('')}</div>
+      ${ccAmbassadorRows()}
+      <button class="cc-continue" id="ccNext">${council.round < 3 ? 'CONTINUE TO ROUND ' + (council.round+1) : 'PROCEED TO FINAL TALLY'}</button>
+    `;
+    document.getElementById('ccNext').onclick = ()=>{
+      if(council.round < 3){
+        council.round++;
+        ccRenderPick();
+      } else {
+        ccFinalize();
+      }
+    };
+  }
+
+  function ccFinalize(){
+    const convinced = council.ambassadors.filter(a=>a.against);
+    const totalAgainst = 1 + convinced.length;
+    const win = totalAgainst >= 2;
+
+    councilModal.innerHTML = `
+      <h2>${win ? 'The Vote Is Blocked' : 'The Vote Passes'}</h2>
+      <div class="sub">FINAL TALLY</div>
+      ${ccAmbassadorRows()}
+      <div class="cc-tally">
+        Zorba-274 (you): <b>against</b><br>
+        Ambassadors voting against: <b>${convinced.length}</b> of 3<br>
+        Total votes against admission: <b>${totalAgainst}</b> / need 2
+      </div>
+      <button class="cc-continue" id="ccFinish">ADJOURN THE COUNCIL</button>
+    `;
+    document.getElementById('ccFinish').onclick = ()=>{
+      councilOverlay.classList.remove('show');
+      if(win){
+        const names = convinced.map(a=>a.name).join(', ') || 'none';
+        endGame(true, "THE COUNCIL BLOCKS ADMISSION", `With Zorba-274 opposed and ${convinced.length} ambassador${convinced.length===1?'':'s'} (${names}) joining the "no" vote, the Sagittarians are denied entry to the Allied Galaxies. Commander Gloongook is hailed as a hero of Glunkoon.`);
+      } else {
+        endGame(false, "THE SAGITTARIANS ARE ADMITTED", "Despite Zorba-274's objection, no ambassador could be swayed in time. The Council votes to admit the Sagittarians to the Allied Galaxies.");
+      }
+    };
+  }
+
+  /* =========================================================
+     RENDER
+     ========================================================= */
+  let starField = [];
+  function makeStars(){
+    starField = [];
+    for(let i=0;i<120;i++){
+      starField.push({x:Math.random()*canvas.width, y:Math.random()*canvas.height, r:Math.random()*1.6});
+    }
+  }
+
+  function render(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    // stars
+    ctx.fillStyle = '#3a2f5c';
+    starField.forEach(s=>{ ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2); ctx.fill(); });
+
+    // player (Gloongook)
+    ctx.save();
+    ctx.translate(player.x, player.y);
+    ctx.rotate(player.angle);
+    ctx.fillStyle = '#7fffa0';
+    ctx.beginPath();
+    ctx.moveTo(16,0);
+    ctx.lineTo(-10,-10);
+    ctx.lineTo(-4,0);
+    ctx.lineTo(-10,10);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(127,255,160,0.4)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.restore();
+
+    // enemies
+    ctx.fillStyle = '#ff3d5a';
+    enemies.forEach(en=>{
+      ctx.save();
+      ctx.translate(en.x, en.y);
+      ctx.beginPath();
+      ctx.moveTo(0,-12);
+      ctx.lineTo(10,10);
+      ctx.lineTo(0,5);
+      ctx.lineTo(-10,10);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    });
+
+    // missiles
+    ctx.fillStyle = '#3ddcc4';
+    missiles.forEach(m=>{
+      ctx.beginPath();
+      ctx.arc(m.x,m.y,m.r,0,Math.PI*2);
+      ctx.fill();
+    });
+
+    // particles
+    particles.forEach(p=>{
+      ctx.globalAlpha = Math.max(0,p.life/0.5);
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x,p.y,3,0,Math.PI*2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    });
+  }
+
+  /* =========================================================
+     HUD UPDATE
+     ========================================================= */
+  function updateHud(){
+    foreheadBar.style.width = state.forehead + '%';
+    mittBar.style.width = state.mitt + '%';
+    sagBar.style.width = state.sagittarian + '%';
+    foreheadVal.textContent = Math.round(state.forehead) + '%';
+    mittVal.textContent = Math.round(state.mitt) + '%';
+    sagVal.textContent = Math.round(state.sagittarian) + '%';
+    creditsVal.textContent = Math.floor(state.zipZaps);
+
+    const t = Math.max(0, state.timeLeft);
+    const mm = Math.floor(t/60), ss = Math.floor(t%60);
+    timerVal.textContent = mm + ':' + String(ss).padStart(2,'0');
+
+    btnForehead.disabled = state.zipZaps < 25;
+    btnSagittarian.disabled = state.zipZaps < 25;
+  }
+
+  /* =========================================================
+     START / RESTART
+     ========================================================= */
+  function resetState(){
+    state.zipZaps = 100;
+    state.forehead = 8;
+    state.mitt = 10;
+    state.sagittarian = 6;
+    state.timeLeft = 180;
+    state.paused = false;
+    enemies.length = 0;
+    missiles.length = 0;
+    particles.length = 0;
+    player.x = canvas.width/2; player.y = canvas.height/2;
+    spawnTimer = 2;
+    nextEventIn = randRange(10,16);
+    lastTime = null;
+    council = null;
+    logEl.innerHTML = "";
+    log("Commander Gloongook takes the cockpit. Zorbon awaits your orders.", "good");
+  }
+
+  function startGame(){
+    resizeCanvas();
+    makeStars();
+    resetState();
+    state.running = true;
+    gameOver.classList.remove('show');
+    overlay.classList.remove('show');
+    councilOverlay.classList.remove('show');
+    startScreen.style.display = 'none';
+    requestAnimationFrame(loop);
+  }
+
+  startBtn.addEventListener('click', startGame);
+  restartBtn.addEventListener('click', startGame);
+
+  resizeCanvas();
+  makeStars();
+  updateHud();
+
+})();
+</script>
+</body>
+</html>
