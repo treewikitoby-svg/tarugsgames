@@ -1,0 +1,1663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Infinite Type</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    background: #111;
+    color: #ddd;
+    font-family: Arial, Helvetica, sans-serif;
+    overflow: hidden;
+}
+
+/* =====================================================
+   TOP BAR
+   ===================================================== */
+
+#topbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+
+    height: 60px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 0 24px;
+
+    background: #181818;
+    border-bottom: 1px solid #333;
+
+    z-index: 100;
+}
+
+#title {
+    color: white;
+    font-size: 20px;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+#rightSide {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+#fontControl {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+
+    color: #999;
+    font-size: 13px;
+}
+
+#fontInput {
+    width: 150px;
+
+    padding: 6px 9px;
+
+    background: #242424;
+    color: #ddd;
+
+    border: 1px solid #3a3a3a;
+    border-radius: 6px;
+
+    outline: none;
+
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+
+    transition:
+        border-color 0.15s ease,
+        background 0.15s ease;
+}
+
+#fontInput:focus {
+    border-color: #666;
+    background: #292929;
+}
+
+#fontStatus {
+    font-size: 11px;
+    color: #777;
+
+    min-width: 40px;
+}
+
+#stats {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+
+    color: #999;
+    font-size: 13px;
+}
+
+#stats strong {
+    color: white;
+}
+
+button {
+    border: none;
+    border-radius: 7px;
+
+    padding: 8px 13px;
+
+    font-size: 13px;
+    font-weight: bold;
+
+    cursor: pointer;
+
+    transition: filter 0.15s ease;
+}
+
+button:hover {
+    filter: brightness(1.15);
+}
+
+#restart {
+    background: #292929;
+    color: #ddd;
+}
+
+/* =====================================================
+   TEXT AREA
+   ===================================================== */
+
+#page {
+    position: absolute;
+
+    top: 60px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    scroll-behavior: smooth;
+}
+
+#textWrapper {
+    position: relative;
+
+    max-width: 1000px;
+
+    margin: 0 auto;
+
+    padding:
+        70px 35px
+        700px 35px;
+}
+
+#text {
+    font-family: Arial, sans-serif;
+
+    font-size: 27px;
+    line-height: 1.75;
+
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+
+    transition: font-family 0.15s ease;
+}
+
+/* =====================================================
+   CHARACTERS
+   ===================================================== */
+
+.char {
+    color: #666;
+
+    transition:
+        color 0.08s ease;
+}
+
+.char.correct {
+    color: #45d66b;
+}
+
+.char.wrong {
+    color: #ff4444;
+}
+
+/* =====================================================
+   SMOOTH CURSOR
+   ===================================================== */
+
+#cursor {
+    position: absolute;
+
+    width: 2px;
+    height: 31px;
+
+    background: white;
+
+    border-radius: 2px;
+
+    pointer-events: none;
+
+    z-index: 5;
+
+    opacity: 0.9;
+
+    transition:
+        left 0.12s cubic-bezier(.22, .61, .36, 1),
+        top 0.12s cubic-bezier(.22, .61, .36, 1),
+        height 0.12s ease;
+}
+
+/* =====================================================
+   HIDDEN INPUT
+   ===================================================== */
+
+#input {
+    position: fixed;
+
+    left: -10000px;
+    top: -10000px;
+
+    width: 1px;
+    height: 1px;
+
+    opacity: 0;
+}
+
+/* =====================================================
+   START SCREEN
+   ===================================================== */
+
+#overlay {
+    position: fixed;
+
+    top: 60px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: rgba(17, 17, 17, 0.97);
+
+    z-index: 200;
+}
+
+#box {
+    width: min(550px, 90%);
+
+    padding: 40px;
+
+    text-align: center;
+}
+
+#box h1 {
+    margin: 0 0 15px;
+
+    color: white;
+
+    font-size: 46px;
+}
+
+#box p {
+    margin: 0 0 30px;
+
+    color: #999;
+
+    font-size: 16px;
+    line-height: 1.7;
+}
+
+#start {
+    background: #45d66b;
+    color: #07100a;
+
+    padding: 13px 25px;
+
+    font-size: 16px;
+}
+
+/* =====================================================
+   MOBILE
+   ===================================================== */
+
+@media (max-width: 900px) {
+
+    #topbar {
+        padding: 0 12px;
+    }
+
+    #rightSide {
+        gap: 10px;
+    }
+
+    #fontControl {
+        display: none;
+    }
+
+    #title {
+        font-size: 16px;
+    }
+
+    #stats {
+        gap: 8px;
+        font-size: 10px;
+    }
+
+    #restart {
+        padding: 6px 8px;
+        font-size: 10px;
+    }
+
+    #textWrapper {
+        padding:
+            45px 20px
+            600px 20px;
+    }
+
+    #text {
+        font-size: 21px;
+        line-height: 1.7;
+    }
+
+    #cursor {
+        height: 25px;
+    }
+
+    #box h1 {
+        font-size: 36px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<!-- =====================================================
+     TOP BAR
+     ===================================================== -->
+
+<div id="topbar">
+
+    <div id="title">
+        ∞ Infinite Type (UGS 8)
+    </div>
+
+    <div id="rightSide">
+
+        <!-- FONT INPUT -->
+
+        <div id="fontControl">
+
+            <label for="fontInput">
+                Font:
+            </label>
+
+            <input
+                id="fontInput"
+                type="text"
+                placeholder="Arial"
+                value="Arial"
+                autocomplete="off"
+                spellcheck="false"
+            >
+
+            <span id="fontStatus"></span>
+
+        </div>
+
+
+        <!-- STATISTICS -->
+
+        <div id="stats">
+
+            <div>
+                WPM:
+                <strong id="wpm">0</strong>
+            </div>
+
+            <div>
+                Accuracy:
+                <strong id="accuracy">100%</strong>
+            </div>
+
+            <div>
+                Characters:
+                <strong id="characters">0</strong>
+            </div>
+
+            <button id="restart">
+                Restart
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     TEXT
+     ===================================================== -->
+
+<div id="page">
+
+    <div id="textWrapper">
+
+        <div id="text"></div>
+
+        <div id="cursor"></div>
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     HIDDEN KEYBOARD INPUT
+     ===================================================== -->
+
+<input
+    id="input"
+    type="text"
+    autocomplete="off"
+    autocorrect="off"
+    autocapitalize="off"
+    spellcheck="false"
+>
+
+
+<!-- =====================================================
+     START SCREEN
+     ===================================================== -->
+
+<div id="overlay">
+
+    <div id="box">
+
+        <h1>
+            Infinite Type
+        </h1>
+
+        <p>
+            An endless wall of randomized,
+            grammatically correct text.
+            Type every character in order.
+            Correct characters turn green.
+            There is no finish line.
+        </p>
+
+        <button id="start">
+            Start Typing
+        </button>
+
+    </div>
+
+</div>
+
+
+<script>
+
+/* =========================================================
+   WORD DATABASE
+   ========================================================= */
+
+const subjects = [
+
+    "the traveler",
+    "the scientist",
+    "the gardener",
+    "the musician",
+    "the explorer",
+    "the teacher",
+    "the farmer",
+    "the sailor",
+    "the engineer",
+    "the painter",
+    "the historian",
+    "the merchant",
+    "the student",
+    "the librarian",
+    "the mechanic",
+    "the architect",
+    "the captain",
+    "the doctor",
+    "the writer",
+    "the stranger",
+    "the child",
+    "the fox",
+    "the bird",
+    "the dog",
+    "the curious visitor",
+    "the old professor",
+    "the young inventor",
+    "the village baker",
+    "the quiet musician",
+    "the wandering scholar",
+    "the careful engineer",
+    "the retired captain",
+    "the local historian",
+    "the young artist"
+
+];
+
+
+const verbs = [
+
+    "examined",
+    "discovered",
+    "carried",
+    "followed",
+    "visited",
+    "observed",
+    "crossed",
+    "described",
+    "studied",
+    "collected",
+    "opened",
+    "explored",
+    "remembered",
+    "searched",
+    "watched",
+    "recorded",
+    "painted",
+    "measured",
+    "noticed",
+    "entered",
+    "found",
+    "approached",
+    "investigated",
+    "inspected",
+    "protected",
+    "repaired",
+    "organized",
+    "designed",
+    "considered"
+
+];
+
+
+const presentVerbs = [
+
+    "walks",
+    "travels",
+    "studies",
+    "watches",
+    "explores",
+    "observes",
+    "collects",
+    "visits",
+    "describes",
+    "follows",
+    "searches",
+    "remembers",
+    "measures",
+    "discovers",
+    "examines",
+    "crosses",
+    "enters",
+    "investigates",
+    "studies",
+    "observes"
+
+];
+
+
+const objects = [
+
+    "an ancient map",
+    "a wooden bridge",
+    "the distant mountain",
+    "a quiet village",
+    "a mysterious letter",
+    "the abandoned station",
+    "a small machine",
+    "the northern forest",
+    "a silver key",
+    "a forgotten garden",
+    "the empty library",
+    "a strange instrument",
+    "the old clock",
+    "a narrow road",
+    "a hidden room",
+    "the blue river",
+    "a dusty notebook",
+    "the enormous tower",
+    "a collection of stones",
+    "the wooden door",
+    "a bright lantern",
+    "the distant harbor",
+    "a collection of books",
+    "the silent theater",
+    "an unfamiliar painting",
+    "a sealed envelope",
+    "the abandoned workshop",
+    "a long wooden table",
+    "the small wooden boat",
+    "an old photograph",
+    "a complicated machine",
+    "the forgotten monument",
+    "a stack of papers",
+    "the strange device",
+    "a collection of coins",
+    "the locked cabinet",
+    "a faded journal",
+    "the empty classroom"
+
+];
+
+
+const places = [
+
+    "near the river",
+    "beside the old station",
+    "inside the library",
+    "beyond the northern hills",
+    "under the ancient bridge",
+    "across the quiet valley",
+    "near a forgotten village",
+    "along the narrow road",
+    "inside the abandoned house",
+    "beside the distant harbor",
+    "beneath the tall trees",
+    "around the empty square",
+    "on the edge of the forest",
+    "near the old theater",
+    "beside the stone wall",
+    "across the open field",
+    "inside the wooden cabin",
+    "near the mountain road",
+    "beside the quiet lake",
+    "under the evening sky"
+
+];
+
+
+const adverbs = [
+
+    "carefully",
+    "quietly",
+    "slowly",
+    "patiently",
+    "unexpectedly",
+    "silently",
+    "happily",
+    "curiously",
+    "deliberately",
+    "suddenly",
+    "peacefully",
+    "thoughtfully",
+    "gradually",
+    "calmly"
+
+];
+
+
+/* =========================================================
+   RANDOM HELPERS
+   ========================================================= */
+
+function random(array) {
+
+    return array[
+        Math.floor(
+            Math.random() *
+            array.length
+        )
+    ];
+
+}
+
+
+function capitalize(text) {
+
+    return text.charAt(0).toUpperCase()
+        + text.slice(1);
+
+}
+
+
+function sentenceSubject() {
+
+    return capitalize(
+        random(subjects)
+    );
+
+}
+
+
+function clauseSubject() {
+
+    return random(subjects);
+
+}
+
+
+/* =========================================================
+   SENTENCE GENERATOR
+   ========================================================= */
+
+function generateSentence() {
+
+    let sentence;
+
+    const type =
+        Math.floor(Math.random() * 10);
+
+
+    if (type === 0) {
+
+        sentence =
+            sentenceSubject() +
+            " " +
+            random(verbs) +
+            " " +
+            random(objects) +
+            " " +
+            random(places) +
+            ".";
+
+    }
+
+
+    else if (type === 1) {
+
+        sentence =
+            sentenceSubject() +
+            " " +
+            random(verbs) +
+            " " +
+            random(objects) +
+            ", " +
+            random(adverbs) +
+            ", " +
+            random(places) +
+            ".";
+
+    }
+
+
+    else if (type === 2) {
+
+        sentence =
+            sentenceSubject() +
+            " " +
+            random(presentVerbs) +
+            " " +
+            random(objects) +
+            " " +
+            random(places) +
+            ".";
+
+    }
+
+
+    else if (type === 3) {
+
+        sentence =
+            sentenceSubject() +
+            " " +
+            random(verbs) +
+            " " +
+            random(objects) +
+            " and " +
+            random(verbs) +
+            " " +
+            random(objects) +
+            ".";
+
+    }
+
+
+    else if (type === 4) {
+
+        sentence =
+            sentenceSubject() +
+            " " +
+            random(verbs) +
+            " " +
+            random(objects) +
+            " because " +
+            clauseSubject() +
+            " " +
+            random(verbs) +
+            " " +
+            random(objects) +
+            ".";
+
+    }
+
+
+    else if (type === 5) {
+
+        sentence =
+            "Although " +
+            clauseSubject() +
+            " " +
+            random(verbs) +
+            " " +
+            random(objects) +
+            ", " +
+            clauseSubject() +
+            " " +
+            random(verbs) +
+            " " +
+            random(objects) +
+            ".";
+
+    }
+
+
+    else if (type === 6) {
+
+        sentence =
+            sentenceSubject() +
+            " " +
+            random(verbs) +
+            " " +
+            random(objects) +
+            " while " +
+            clauseSubject() +
+            " " +
+            random(presentVerbs) +
+            " " +
+            random(objects) +
+            ".";
+
+    }
+
+
+    else if (type === 7) {
+
+        sentence =
+            "After " +
+            clauseSubject() +
+            " " +
+            random(verbs) +
+            " " +
+            random(objects) +
+            ", " +
+            clauseSubject() +
+            " " +
+            random(verbs) +
+            " " +
+            random(objects) +
+            ".";
+
+    }
+
+
+    else if (type === 8) {
+
+        sentence =
+            "When " +
+            clauseSubject() +
+            " " +
+            random(verbs) +
+            " " +
+            random(objects) +
+            ", " +
+            clauseSubject() +
+            " " +
+            random(verbs) +
+            " " +
+            random(objects) +
+            ".";
+
+    }
+
+
+    else {
+
+        sentence =
+            "Since " +
+            clauseSubject() +
+            " " +
+            random(verbs) +
+            " " +
+            random(objects) +
+            ", " +
+            clauseSubject() +
+            " " +
+            random(verbs) +
+            " " +
+            random(objects) +
+            ".";
+
+    }
+
+
+    return capitalize(sentence);
+
+}
+
+
+/* =========================================================
+   TEXT
+   ========================================================= */
+
+let fullText = "";
+
+let renderedLength = 0;
+
+
+function generateMoreText() {
+
+    for (let i = 0; i < 100; i++) {
+
+        fullText +=
+            generateSentence() +
+            " ";
+
+    }
+
+    renderText();
+
+}
+
+
+function renderText() {
+
+    const textElement =
+        document.getElementById("text");
+
+    const newText =
+        fullText.substring(
+            renderedLength
+        );
+
+    const fragment =
+        document.createDocumentFragment();
+
+
+    for (const character of newText) {
+
+        const span =
+            document.createElement("span");
+
+        span.className =
+            "char";
+
+        span.textContent =
+            character;
+
+        fragment.appendChild(span);
+
+    }
+
+
+    textElement.appendChild(fragment);
+
+    renderedLength =
+        fullText.length;
+
+}
+
+
+/* =========================================================
+   GAME STATE
+   ========================================================= */
+
+let position = 0;
+
+let correctCharacters = 0;
+
+let totalCharacters = 0;
+
+let wrongCharacters = 0;
+
+let started = false;
+
+let startTime = null;
+
+
+const input =
+    document.getElementById("input");
+
+const cursor =
+    document.getElementById("cursor");
+
+const page =
+    document.getElementById("page");
+
+const textWrapper =
+    document.getElementById("textWrapper");
+
+
+/* =========================================================
+   FONT SYSTEM
+   ========================================================= */
+
+const fontInput =
+    document.getElementById("fontInput");
+
+const fontStatus =
+    document.getElementById("fontStatus");
+
+const textElement =
+    document.getElementById("text");
+
+
+/*
+    Check whether a font actually exists.
+
+    We use the browser's Font Loading API when available.
+*/
+
+async function applyFont(fontName) {
+
+    fontName =
+        fontName.trim();
+
+
+    if (!fontName) {
+
+        fontName = "Arial";
+
+    }
+
+
+    /*
+        CSS.escape isn't available in some
+        older browsers, so don't rely on it.
+    */
+
+    const testFont =
+        `"${fontName.replace(/"/g, "")}"`;
+
+
+    /*
+        Font Loading API.
+
+        If the requested font isn't available,
+        Arial is used.
+    */
+
+    try {
+
+        if (document.fonts) {
+
+            const loaded =
+                await document.fonts.check(
+                    `16px ${testFont}`
+                );
+
+
+            if (loaded) {
+
+                textElement.style.fontFamily =
+                    testFont;
+
+                fontStatus.textContent =
+                    "✓";
+
+                fontStatus.style.color =
+                    "#45d66b";
+
+                /*
+                    Reposition cursor because
+                    changing fonts changes
+                    character dimensions.
+                */
+
+                setTimeout(() => {
+
+                    if (started) {
+                        moveCursor(false);
+                    }
+
+                }, 20);
+
+                return;
+
+            }
+
+        }
+
+    } catch (error) {
+
+        /*
+            Ignore font detection errors.
+        */
+
+    }
+
+
+    /*
+        Font wasn't found.
+
+        Fall back to Arial.
+    */
+
+    textElement.style.fontFamily =
+        "Arial, sans-serif";
+
+    fontStatus.textContent =
+        "Arial";
+
+    fontStatus.style.color =
+        "#777";
+
+
+    setTimeout(() => {
+
+        if (started) {
+            moveCursor(false);
+        }
+
+    }, 20);
+
+}
+
+
+/*
+    Apply when Enter is pressed.
+*/
+
+fontInput.addEventListener(
+    "keydown",
+    function(event) {
+
+        if (event.key === "Enter") {
+
+            event.preventDefault();
+
+            applyFont(
+                fontInput.value
+            );
+
+            /*
+                Return keyboard focus to
+                the typing game.
+            */
+
+            setTimeout(() => {
+
+                if (started) {
+                    input.focus();
+                }
+
+            }, 30);
+
+        }
+
+    }
+);
+
+
+/*
+    Also apply when the user leaves
+    the font box.
+*/
+
+fontInput.addEventListener(
+    "blur",
+    function() {
+
+        applyFont(
+            fontInput.value
+        );
+
+    }
+);
+
+
+/*
+    Initial font.
+*/
+
+applyFont("Arial");
+
+
+/* =========================================================
+   START GAME
+   ========================================================= */
+
+document
+    .getElementById("start")
+    .addEventListener(
+        "click",
+        startGame
+    );
+
+
+function startGame() {
+
+    started = true;
+
+    startTime =
+        Date.now();
+
+
+    document
+        .getElementById("overlay")
+        .style.display =
+        "none";
+
+
+    if (fullText.length === 0) {
+
+        generateMoreText();
+
+    }
+
+
+    input.focus();
+
+    moveCursor(false);
+
+}
+
+
+/* =========================================================
+   KEYBOARD INPUT
+   ========================================================= */
+
+input.addEventListener(
+    "keydown",
+    function(event) {
+
+        if (!started) {
+            return;
+        }
+
+
+        /*
+            Every printable character has
+            event.key.length === 1.
+
+            SPACE is included.
+        */
+
+        if (event.key.length !== 1) {
+            return;
+        }
+
+
+        event.preventDefault();
+
+
+        const typedCharacter =
+            event.key;
+
+
+        /*
+            Generate more text before
+            we get close to the end.
+        */
+
+        if (
+            fullText.length -
+            position <
+            1000
+        ) {
+
+            generateMoreText();
+
+        }
+
+
+        const spans =
+            document.querySelectorAll(
+                ".char"
+            );
+
+
+        const currentSpan =
+            spans[position];
+
+
+        if (!currentSpan) {
+            return;
+        }
+
+
+        totalCharacters++;
+
+
+        /* ===============================
+           CORRECT
+           =============================== */
+
+        if (
+            typedCharacter ===
+            fullText[position]
+        ) {
+
+            currentSpan
+                .classList
+                .remove("wrong");
+
+            currentSpan
+                .classList
+                .add("correct");
+
+
+            correctCharacters++;
+
+            position++;
+
+
+            /*
+                Smooth cursor movement.
+            */
+
+            moveCursor(true);
+
+        }
+
+
+        /* ===============================
+           WRONG
+           =============================== */
+
+        else {
+
+            currentSpan
+                .classList
+                .add("wrong");
+
+
+            wrongCharacters++;
+
+
+            setTimeout(() => {
+
+                currentSpan
+                    .classList
+                    .remove("wrong");
+
+            }, 180);
+
+        }
+
+
+        updateStats();
+
+    }
+);
+
+
+/* =========================================================
+   CURSOR
+   ========================================================= */
+
+function moveCursor(animate = true) {
+
+    const spans =
+        document.querySelectorAll(
+            ".char"
+        );
+
+
+    const current =
+        spans[position];
+
+
+    if (!current) {
+        return;
+    }
+
+
+    const wrapperRect =
+        textWrapper.getBoundingClientRect();
+
+
+    const charRect =
+        current.getBoundingClientRect();
+
+
+    const left =
+        charRect.left -
+        wrapperRect.left;
+
+
+    const top =
+        charRect.top -
+        wrapperRect.top;
+
+
+    /*
+        Disable transition for initial
+        positioning.
+    */
+
+    if (!animate) {
+
+        cursor.style.transition =
+            "none";
+
+    }
+
+
+    cursor.style.left =
+        left + "px";
+
+
+    cursor.style.top =
+        (top + 3) + "px";
+
+
+    cursor.style.height =
+        Math.max(
+            20,
+            charRect.height - 6
+        ) + "px";
+
+
+    if (!animate) {
+
+        cursor.offsetHeight;
+
+
+        cursor.style.transition = `
+            left 0.12s cubic-bezier(.22,.61,.36,1),
+            top 0.12s cubic-bezier(.22,.61,.36,1),
+            height 0.12s ease
+        `;
+
+    }
+
+
+    keepCursorVisible(current);
+
+}
+
+
+/* =========================================================
+   SCROLLING
+   ========================================================= */
+
+function keepCursorVisible(current) {
+
+    const rect =
+        current.getBoundingClientRect();
+
+
+    const topLimit = 120;
+
+    const bottomLimit =
+        window.innerHeight - 120;
+
+
+    if (
+        rect.top < topLimit ||
+        rect.bottom > bottomLimit
+    ) {
+
+        const target =
+            page.scrollTop +
+            (
+                rect.top -
+                window.innerHeight / 2
+            ) +
+            rect.height / 2;
+
+
+        page.scrollTo({
+            top: target,
+            behavior: "smooth"
+        });
+
+    }
+
+}
+
+
+/* =========================================================
+   STATISTICS
+   ========================================================= */
+
+function updateStats() {
+
+    document
+        .getElementById("characters")
+        .textContent =
+        correctCharacters;
+
+
+    let accuracy = 100;
+
+
+    if (totalCharacters > 0) {
+
+        accuracy =
+            Math.round(
+                (
+                    correctCharacters /
+                    totalCharacters
+                ) * 100
+            );
+
+    }
+
+
+    document
+        .getElementById("accuracy")
+        .textContent =
+        accuracy + "%";
+
+
+    if (!startTime) {
+        return;
+    }
+
+
+    const elapsedMinutes =
+        (
+            Date.now() -
+            startTime
+        ) / 60000;
+
+
+    if (elapsedMinutes <= 0) {
+        return;
+    }
+
+
+    const words =
+        correctCharacters / 5;
+
+
+    const wpm =
+        Math.round(
+            words /
+            elapsedMinutes
+        );
+
+
+    document
+        .getElementById("wpm")
+        .textContent =
+        wpm;
+
+}
+
+
+/* =========================================================
+   KEEP FOCUS
+   ========================================================= */
+
+document.addEventListener(
+    "click",
+    function(event) {
+
+        /*
+            Don't steal focus from the
+            font input while the user is
+            typing a font name.
+        */
+
+        if (
+            event.target === fontInput
+        ) {
+            return;
+        }
+
+
+        if (started) {
+
+            input.focus();
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   RESTART
+   ========================================================= */
+
+document
+    .getElementById("restart")
+    .addEventListener(
+        "click",
+        function() {
+
+            fullText = "";
+
+            renderedLength = 0;
+
+            position = 0;
+
+            correctCharacters = 0;
+
+            totalCharacters = 0;
+
+            wrongCharacters = 0;
+
+            startTime =
+                Date.now();
+
+
+            document
+                .getElementById("text")
+                .innerHTML =
+                "";
+
+
+            generateMoreText();
+
+
+            input.focus();
+
+
+            updateStats();
+
+            moveCursor(false);
+
+        }
+    );
+
+
+/* =========================================================
+   LIVE STATS
+   ========================================================= */
+
+setInterval(
+    updateStats,
+    500
+);
+
+
+/* =========================================================
+   WINDOW RESIZE
+   ========================================================= */
+
+window.addEventListener(
+    "resize",
+    function() {
+
+        if (started) {
+
+            moveCursor(false);
+
+        }
+
+    }
+);
+
+</script>
+
+</body>
+</html>
