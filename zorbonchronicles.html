@@ -309,6 +309,446 @@
 
   const EVENT_POOL = [
     new GameEvent({
+  title: "The Great Zip Zap Shortage",
+  hasHappened: "A bookkeeping error has revealed that Glunkoon has far fewer Zip Zaps than previously believed.",
+  hasHappenedEffect: (s)=>{ s.zipZaps = Math.max(0, s.zipZaps - 20); },
+  actions: [
+    { label:"Audit every treasury account", outcomes:[
+      { chance:0.75, preview:"Audit succeeds — Zip Zaps +35", flavor:"The accountants uncover a forgotten emergency reserve.", effect:(s)=>{ s.zipZaps += 35; } },
+      { chance:0.25, preview:"Audit fails — M.I.T.T. +8%", flavor:"The audit takes too long and the M.I.T.T. exploits the distraction.", effect:(s)=>{ s.mitt=clamp(s.mitt+8); } },
+    ]},
+    { label:"Borrow from allied merchants", outcomes:[
+      { chance:1.0, preview:"Guaranteed — Zip Zaps +25, Sagittarian +4%", flavor:"The merchants provide emergency credit, but demand diplomatic favors.", effect:(s)=>{ s.zipZaps+=25; s.sagittarian=clamp(s.sagittarian+4); } },
+    ]},
+    { label:"Do nothing", outcomes:[
+      { chance:1.0, preview:"Guaranteed — Forehead +8%", flavor:"With no funding available, the incinerators begin falling behind.", effect:(s)=>{ s.forehead=clamp(s.forehead+8); } },
+    ]},
+  ]
+}),
+
+new GameEvent({
+  title: "Gloongook's Lucky Star",
+  hasHappened: "A strange green comet has appeared directly over Glunkoon.",
+  hasHappenedEffect: null,
+  actions: [
+    { label:"Study the comet", outcomes:[
+      { chance:0.8, preview:"Scientific breakthrough — Zip Zaps +30", flavor:"Scientists discover a valuable mineral trail inside the comet.", effect:(s)=>{ s.zipZaps+=30; } },
+      { chance:0.2, preview:"Radiation surge — Forehead +10%", flavor:"The comet's radiation supercharges Mitt's Forehead.", effect:(s)=>{ s.forehead=clamp(s.forehead+10); } },
+    ]},
+    { label:"Declare it a symbol of Zorbon", outcomes:[
+      { chance:1.0, preview:"Guaranteed — Sagittarian lobbying -10%", flavor:"The dramatic announcement inspires several neutral worlds to respect Zorbon's leadership.", effect:(s)=>{ s.sagittarian=clamp(s.sagittarian-10); } },
+    ]},
+    { label:"Shoot it down", outcomes:[
+      { chance:0.65, preview:"Successful interception — M.I.T.T. -8%", flavor:"The debris forms a temporary defensive cloud around Glunkoon.", effect:(s)=>{ s.mitt=clamp(s.mitt-8); } },
+      { chance:0.35, preview:"Missed shot — Zip Zaps -15", flavor:"The missile disappears into space without touching the comet.", effect:(s)=>{ s.zipZaps=Math.max(0,s.zipZaps-15); } },
+    ]},
+  ]
+}),
+
+new GameEvent({
+  title: "M.I.T.T. Propaganda Broadcast",
+  hasHappened: "Every public screen on Glunkoon suddenly displays a M.I.T.T. recruitment broadcast.",
+  hasHappenedEffect: (s)=>{ s.mitt=clamp(s.mitt+7); },
+  actions: [
+    { label:"Jam the transmission (20zz)", outcomes:[
+      { chance:0.8, preview:"Successful — M.I.T.T. -15%", flavor:"The broadcast vanishes beneath a wall of static.", effect:(s)=>{ s.zipZaps-=20; s.mitt=clamp(s.mitt-15); } },
+      { chance:0.2, preview:"Jamming fails — M.I.T.T. +8%", flavor:"The M.I.T.T. anticipated the jamming frequency.", effect:(s)=>{ s.zipZaps-=20; s.mitt=clamp(s.mitt+8); } },
+    ]},
+    { label:"Counter with Zorbonian propaganda", outcomes:[
+      { chance:0.7, preview:"Citizens rally — M.I.T.T. -10%", flavor:"Gloongook's heroic image restores confidence.", effect:(s)=>{ s.mitt=clamp(s.mitt-10); } },
+      { chance:0.3, preview:"Citizens mock the campaign — Sagittarian +8%", flavor:"The overly dramatic campaign becomes an intergalactic joke.", effect:(s)=>{ s.sagittarian=clamp(s.sagittarian+8); } },
+    ]},
+    { label:"Ignore the broadcast", outcomes:[
+      { chance:1.0, preview:"Guaranteed — M.I.T.T. +10%", flavor:"The M.I.T.T. gains a few new recruits.", effect:(s)=>{ s.mitt=clamp(s.mitt+10); } },
+    ]},
+  ]
+}),
+
+new GameEvent({
+  title: "Incinerator Technician Strike",
+  hasHappened: "Glunkoon's incinerator technicians have walked off the job over dangerous working conditions.",
+  hasHappenedEffect: (s)=>{ s.forehead=clamp(s.forehead+9); },
+  actions: [
+    { label:"Give the technicians hazard pay (30zz)", outcomes:[
+      { chance:1.0, preview:"Guaranteed — Forehead -18%", flavor:"The technicians return to work immediately.", effect:(s)=>{ s.zipZaps-=30; s.forehead=clamp(s.forehead-18); } },
+    ]},
+    { label:"Replace them with military engineers", outcomes:[
+      { chance:0.65, preview:"Works — Forehead -12%, M.I.T.T. +5%", flavor:"The engineers stabilize the incinerators, but several fighters go understaffed.", effect:(s)=>{ s.forehead=clamp(s.forehead-12); s.mitt=clamp(s.mitt+5); } },
+      { chance:0.35, preview:"Disaster — Forehead +15%", flavor:"Military engineers are no substitute for experienced technicians.", effect:(s)=>{ s.forehead=clamp(s.forehead+15); } },
+    ]},
+    { label:"Refuse their demands", outcomes:[
+      { chance:1.0, preview:"Guaranteed — Forehead +12%", flavor:"The strike continues and the incinerators cool rapidly.", effect:(s)=>{ s.forehead=clamp(s.forehead+12); } },
+    ]},
+  ]
+}),
+
+new GameEvent({
+  title: "Sagittarian Peace Offer",
+  hasHappened: "Sagittarian representatives have unexpectedly offered Zorbon a temporary peace agreement.",
+  hasHappenedEffect: null,
+  actions: [
+    { label:"Accept the offer", outcomes:[
+      { chance:0.8, preview:"Agreement holds — Sagittarian -18%, M.I.T.T. +4%", flavor:"The Sagittarians reduce their lobbying campaign, though the M.I.T.T. takes advantage of the distraction.", effect:(s)=>{ s.sagittarian=clamp(s.sagittarian-18); s.mitt=clamp(s.mitt+4); } },
+      { chance:0.2, preview:"It's a trick — Sagittarian +15%", flavor:"The peace offer was merely a way to gain access to Zorbon's diplomats.", effect:(s)=>{ s.sagittarian=clamp(s.sagittarian+15); } },
+    ]},
+    { label:"Demand concessions", outcomes:[
+      { chance:0.6, preview:"They agree — Sagittarian -12%, Zip Zaps +20", flavor:"The Sagittarians agree to your demands and even provide compensation.", effect:(s)=>{ s.sagittarian=clamp(s.sagittarian-12); s.zipZaps+=20; } },
+      { chance:0.4, preview:"They walk away — Sagittarian +10%", flavor:"The negotiations collapse spectacularly.", effect:(s)=>{ s.sagittarian=clamp(s.sagittarian+10); } },
+    ]},
+    { label:"Reject the offer", outcomes:[
+      { chance:1.0, preview:"Guaranteed — M.I.T.T. -3%, Sagittarian +5%", flavor:"Your refusal convinces some worlds that Zorbon is serious about resisting admission.", effect:(s)=>{ s.mitt=clamp(s.mitt-3); s.sagittarian=clamp(s.sagittarian+5); } },
+    ]},
+  ]
+}),
+
+new GameEvent({
+  title: "The Glunkoon Food Crisis",
+  hasHappened: "A navigation error has delayed several food shipments to Glunkoon.",
+  hasHappenedEffect: (s)=>{ s.zipZaps=Math.max(0,s.zipZaps-12); },
+  actions: [
+    { label:"Reroute military transports", outcomes:[
+      { chance:1.0, preview:"Guaranteed — Zip Zaps -10, M.I.T.T. +5%", flavor:"The military gets the food through, but patrol coverage suffers.", effect:(s)=>{ s.zipZaps=Math.max(0,s.zipZaps-10); s.mitt=clamp(s.mitt+5); } },
+    ]},
+    { label:"Ask the Allied Council for aid", outcomes:[
+      { chance:0.7, preview:"Aid arrives — Zip Zaps +30, Sagittarian -5%", flavor:"Several allies send emergency supplies and praise Zorbon's diplomacy.", effect:(s)=>{ s.zipZaps+=30; s.sagittarian=clamp(s.sagittarian-5); } },
+      { chance:0.3, preview:"Request denied — Sagittarian +8%", flavor:"The Council claims Zorbon should solve its own logistical problems.", effect:(s)=>{ s.sagittarian=clamp(s.sagittarian+8); } },
+    ]},
+    { label:"Tell everyone to ration", outcomes:[
+      { chance:1.0, preview:"Guaranteed — Sagittarian +6%, Zip Zaps +15", flavor:"Rationing saves resources but damages the government's popularity.", effect:(s)=>{ s.sagittarian=clamp(s.sagittarian+6); s.zipZaps+=15; } },
+    ]},
+  ]
+}),
+
+new GameEvent({
+  title: "The Forehead Weather Report",
+  hasHappened: "Meteorologists report that unusual atmospheric currents are carrying heat from Mitt's Forehead toward Glunkoon.",
+  hasHappenedEffect: (s)=>{ s.forehead=clamp(s.forehead+6); },
+  actions: [
+    { label:"Deploy cooling satellites (25zz)", outcomes:[
+      { chance:0.75, preview:"Satellites work — Forehead -18%", flavor:"The satellites redirect the heat back into deep space.", effect:(s)=>{ s.zipZaps-=25; s.forehead=clamp(s.forehead-18); } },
+      { chance:0.25, preview:"Satellites melt — Forehead +8%", flavor:"The heat is simply too intense.", effect:(s)=>{ s.zipZaps-=25; s.forehead=clamp(s.forehead+8); } },
+    ]},
+    { label:"Use the heat to power the grid", outcomes:[
+      { chance:0.8, preview:"Brilliant success — Zip Zaps +40", flavor:"Zorbonian engineers turn the crisis into an energy source.", effect:(s)=>{ s.zipZaps+=40; } },
+      { chance:0.2, preview:"Grid overload — Forehead +10%", flavor:"The energy harvesters cannot handle the output.", effect:(s)=>{ s.forehead=clamp(s.forehead+10); } },
+    ]},
+    { label:"Accept the heat", outcomes:[
+      { chance:1.0, preview:"Guaranteed — Forehead +8%", flavor:"Glunkoon gets considerably warmer.", effect:(s)=>{ s.forehead=clamp(s.forehead+8); } },
+    ]},
+  ]
+}),
+
+new GameEvent({
+  title: "M.I.T.T. Ace Pilot",
+  hasHappened: "A legendary M.I.T.T. fighter pilot has been detected leading an assault group.",
+  hasHappenedEffect: (s)=>{ s.mitt=clamp(s.mitt+12); },
+  actions: [
+    { label:"Challenge the ace personally", outcomes:[
+      { chance:0.55, preview:"Ace defeated — M.I.T.T. -25%", flavor:"Gloongook outmaneuvers the legendary pilot in a spectacular dogfight.", effect:(s)=>{ s.mitt=clamp(s.mitt-25); } },
+      { chance:0.45, preview:"Gloongook retreats — M.I.T.T. +8%", flavor:"The ace proves too skilled to confront directly.", effect:(s)=>{ s.mitt=clamp(s.mitt+8); } },
+    ]},
+    { label:"Send the entire squadron", outcomes:[
+      { chance:1.0, preview:"Guaranteed — M.I.T.T. -12%, Zip Zaps -15", flavor:"Overwhelming numbers force the ace to retreat.", effect:(s)=>{ s.mitt=clamp(s.mitt-12); s.zipZaps=Math.max(0,s.zipZaps-15); } },
+    ]},
+    { label:"Avoid the ace", outcomes:[
+      { chance:1.0, preview:"Guaranteed — M.I.T.T. +10%", flavor:"The ace continues organizing the enemy fleet.", effect:(s)=>{ s.mitt=clamp(s.mitt+10); } },
+    ]},
+  ]
+}),
+
+new GameEvent({
+  title: "Ambassadorial Miscommunication",
+  hasHappened: "A translation error makes it appear that Zorbon has insulted three Allied ambassadors.",
+  hasHappenedEffect: (s)=>{ s.sagittarian=clamp(s.sagittarian+9); },
+  actions: [
+    { label:"Issue an immediate apology", outcomes:[
+      { chance:0.85, preview:"Apology accepted — Sagittarian -15%", flavor:"The ambassadors accept the explanation and laugh off the misunderstanding.", effect:(s)=>{ s.sagittarian=clamp(s.sagittarian-15); } },
+      { chance:0.15, preview:"Apology rejected — Sagittarian +10%", flavor:"The diplomats demand a much stronger response.", effect:(s)=>{ s.sagittarian=clamp(s.sagittarian+10); } },
+    ]},
+    { label:"Blame the translators", outcomes:[
+      { chance:0.6, preview:"Technically correct — Sagittarian -8%, Zip Zaps -10", flavor:"The translators are fired and the Council accepts the explanation.", effect:(s)=>{ s.sagittarian=clamp(s.sagittarian-8); s.zipZaps=Math.max(0,s.zipZaps-10); } },
+      { chance:0.4, preview:"Looks evasive — Sagittarian +12%", flavor:"The Council thinks Zorbon is avoiding responsibility.", effect:(s)=>{ s.sagittarian=clamp(s.sagittarian+12); } },
+    ]},
+    { label:"Pretend nothing happened", outcomes:[
+      { chance:1.0, preview:"Guaranteed — Sagittarian +14%", flavor:"The ambassadors remain deeply offended.", effect:(s)=>{ s.sagittarian=clamp(s.sagittarian+14); } },
+    ]},
+  ]
+}),
+
+new GameEvent({
+  title: "Emergency Shield Upgrade",
+  hasHappened: "Engineers have developed a prototype shield capable of protecting Glunkoon from enemy fighters.",
+  hasHappenedEffect: null,
+  actions: [
+    { label:"Install it immediately (40zz)", outcomes:[
+      { chance:0.7, preview:"Works perfectly — M.I.T.T. -20%", flavor:"The new shield absorbs incoming fire with ease.", effect:(s)=>{ s.zipZaps-=40; s.mitt=clamp(s.mitt-20); } },
+      { chance:0.3, preview:"Prototype fails — M.I.T.T. +12%", flavor:"The shield overloads at the worst possible moment.", effect:(s)=>{ s.zipZaps-=40; s.mitt=clamp(s.mitt+12); } },
+    ]},
+    { label:"Test it first", outcomes:[
+      { chance:1.0, preview:"Guaranteed — M.I.T.T. -8%, Zip Zaps -10", flavor:"Controlled tests reveal enough to improve your defenses.", effect:(s)=>{ s.mitt=clamp(s.mitt-8); s.zipZaps=Math.max(0,s.zipZaps-10); } },
+    ]},
+    { label:"Keep the old shields", outcomes:[
+      { chance:1.0, preview:"Guaranteed — nothing changes", flavor:"The prototype is stored for another day.", effect:(s)=>{} },
+    ]},
+  ]
+}),
+
+new GameEvent({
+  title: "The Sagittarian Celebrity",
+  hasHappened: "A famous Sagittarian entertainer has arrived on Glunkoon and immediately attracted enormous crowds.",
+  hasHappenedEffect: (s)=>{ s.sagittarian=clamp(s.sagittarian+10); },
+  actions: [
+    { label:"Invite them to a Zorbonian concert", outcomes:[
+      { chance:0.75, preview:"Crowd goes wild — Sagittarian -18%", flavor:"The celebrity praises Zorbonian hospitality to millions of fans.", effect:(s)=>{ s.sagittarian=clamp(s.sagittarian-18); } },
+      { chance:0.25, preview:"Celebrity refuses — Sagittarian +8%", flavor:"The celebrity calls the invitation insulting.", effect:(s)=>{ s.sagittarian=clamp(s.sagittarian+8); } },
+    ]},
+    { label:"Ban the performance", outcomes:[
+      { chance:1.0, preview:"Guaranteed — Sagittarian +18%", flavor:"The ban becomes the biggest news story in the Allied Galaxies.", effect:(s)=>{ s.sagittarian=clamp(s.sagittarian+18); } },
+    ]},
+    { label:"Let them perform", outcomes:[
+      { chance:1.0, preview:"Guaranteed — Zip Zaps +20, Sagittarian -5%", flavor:"Ticket sales fill the treasury while the celebrity enjoys the welcome.", effect:(s)=>{ s.zipZaps+=20; s.sagittarian=clamp(s.sagittarian-5); } },
+    ]},
+  ]
+}),
+
+new GameEvent({
+  title: "M.I.T.T. Navigation Error",
+  hasHappened: "A M.I.T.T. navigation computer has malfunctioned, sending an enemy wing directly into an asteroid field.",
+  hasHappenedEffect: (s)=>{ s.mitt=clamp(s.mitt-12); },
+  actions: [
+    { label:"Exploit the confusion", outcomes:[
+      { chance:0.8, preview:"Ambush succeeds — M.I.T.T. -18%", flavor:"Gloongook catches the scattered fighters before they regroup.", effect:(s)=>{ s.mitt=clamp(s.mitt-18); } },
+      { chance:0.2, preview:"Ambush fails — M.I.T.T. +7%", flavor:"The M.I.T.T. realizes the trap and counterattacks.", effect:(s)=>{ s.mitt=clamp(s.mitt+7); } },
+    ]},
+    { label:"Send a warning", outcomes:[
+      { chance:1.0, preview:"Guaranteed — Sagittarian -10%", flavor:"Your mercy becomes a powerful diplomatic story across the Allied Galaxies.", effect:(s)=>{ s.sagittarian=clamp(s.sagittarian-10); } },
+    ]},
+    { label:"Do nothing", outcomes:[
+      { chance:1.0, preview:"Guaranteed — nothing changes", flavor:"The M.I.T.T. eventually escapes the asteroid field.", effect:(s)=>{} },
+    ]},
+  ]
+}),
+
+new GameEvent({
+  title: "Glunkoon Festival",
+  hasHappened: "The annual Festival of Gloongook has begun, temporarily distracting much of the population.",
+  hasHappenedEffect: (s)=>{ s.zipZaps+=15; },
+  actions: [
+    { label:"Turn the festival into a fundraiser", outcomes:[
+      { chance:0.8, preview:"Huge success — Zip Zaps +45", flavor:"Citizens happily contribute to the war effort between celebrations.", effect:(s)=>{ s.zipZaps+=45; } },
+      { chance:0.2, preview:"Fundraiser flops — Sagittarian +6%", flavor:"Citizens accuse the government of ruining the festival.", effect:(s)=>{ s.sagittarian=clamp(s.sagittarian+6); } },
+    ]},
+    { label:"Let everyone celebrate", outcomes:[
+      { chance:1.0, preview:"Guaranteed — Forehead +5%, M.I.T.T. +5%", flavor:"The entire government relaxes while the threats continue growing.", effect:(s)=>{ s.forehead=clamp(s.forehead+5); s.mitt=clamp(s.mitt+5); } },
+    ]},
+    { label:"Cancel the festival", outcomes:[
+      { chance:1.0, preview:"Guaranteed — Zip Zaps +30, Sagittarian +10%", flavor:"The treasury benefits, but nobody is happy about it.", effect:(s)=>{ s.zipZaps+=30; s.sagittarian=clamp(s.sagittarian+10); } },
+    ]},
+  ]
+}),
+
+new GameEvent({
+  title: "Unknown Signal",
+  hasHappened: "Deep-space receivers have detected a repeating signal from beyond the known Allied Galaxies.",
+  hasHappenedEffect: null,
+  actions: [
+    { label:"Answer the signal", outcomes:[
+      { chance:0.65, preview:"Friendly aliens respond — Zip Zaps +50", flavor:"A mysterious civilization sends a gift of advanced technology.", effect:(s)=>{ s.zipZaps+=50; } },
+      { chance:0.35, preview:"Hostile response — M.I.T.T. +12%", flavor:"The signal was intercepted by an unknown hostile force.", effect:(s)=>{ s.mitt=clamp(s.mitt+12); } },
+    ]},
+    { label:"Use the signal against the Sagittarians", outcomes:[
+      { chance:0.7, preview:"Successful bluff — Sagittarian -15%", flavor:"The Sagittarians believe Zorbon has powerful new allies.", effect:(s)=>{ s.sagittarian=clamp(s.sagittarian-15); } },
+      { chance:0.3, preview:"Bluff exposed — Sagittarian +12%", flavor:"The Council discovers that Zorbon fabricated the threat.", effect:(s)=>{ s.sagittarian=clamp(s.sagittarian+12); } },
+    ]},
+    { label:"Ignore it", outcomes:[
+      { chance:1.0, preview:"Guaranteed — nothing changes", flavor:"The strange signal continues repeating in the darkness.", effect:(s)=>{} },
+    ]},
+  ]
+}),
+
+new GameEvent({
+  title: "The Great Incinerator Debate",
+  hasHappened: "Zorbonian scientists are divided over whether Mitt's Forehead can actually be cooled.",
+  hasHappenedEffect: null,
+  actions: [
+    { label:"Fund both research teams (35zz)", outcomes:[
+      { chance:0.75, preview:"Breakthrough — Forehead -20%", flavor:"The competing teams combine their discoveries into a new cooling technique.", effect:(s)=>{ s.zipZaps-=35; s.forehead=clamp(s.forehead-20); } },
+      { chance:0.25, preview:"Research dispute — Forehead +8%", flavor:"The scientists spend the entire budget arguing with each other.", effect:(s)=>{ s.zipZaps-=35; s.forehead=clamp(s.forehead+8); } },
+    ]},
+    { label:"Choose the optimistic team", outcomes:[
+      { chance:0.6, preview:"Correct choice — Forehead -12%", flavor:"The optimistic scientists were right.", effect:(s)=>{ s.forehead=clamp(s.forehead-12); } },
+      { chance:0.4, preview:"Wrong choice — Forehead +12%", flavor:"Their theory collapses spectacularly.", effect:(s)=>{ s.forehead=clamp(s.forehead+12); } },
+    ]},
+    { label:"End the debate", outcomes:[
+      { chance:1.0, preview:"Guaranteed — Forehead +6%, Zip Zaps +10", flavor:"No more research money is spent, but the incinerators continue struggling.", effect:(s)=>{ s.forehead=clamp(s.forehead+6); s.zipZaps+=10; } },
+    ]},
+  ]
+}),
+
+new GameEvent({
+  title: "M.I.T.T. Spy in the Fleet",
+  hasHappened: "Intelligence reports that someone aboard a Gloongook cruiser may be secretly transmitting information to the M.I.T.T.",
+  hasHappenedEffect: (s)=>{ s.mitt=clamp(s.mitt+6); },
+  actions: [
+    { label:"Investigate everyone", outcomes:[
+      { chance:0.7, preview:"Spy discovered — M.I.T.T. -15%", flavor:"The traitor is exposed before more information can escape.", effect:(s)=>{ s.mitt=clamp(s.mitt-15); } },
+      { chance:0.3, preview:"Investigation fails — M.I.T.T. +10%", flavor:"The spy disappears before investigators can identify them.", effect:(s)=>{ s.mitt=clamp(s.mitt+10); } },
+    ]},
+    { label:"Install new communications security (25zz)", outcomes:[
+      { chance:1.0, preview:"Guaranteed — M.I.T.T. -10%, Zip Zaps -25", flavor:"Encrypted communications cut the spy off from the enemy.", effect:(s)=>{ s.zipZaps-=25; s.mitt=clamp(s.mitt-10); } },
+    ]},
+    { label:"Ignore the rumor", outcomes:[
+      { chance:1.0, preview:"Guaranteed — M.I.T.T. +12%", flavor:"The spy continues operating freely.", effect:(s)=>{ s.mitt=clamp(s.mitt+12); } },
+    ]},
+  ]
+}),
+
+new GameEvent({
+  title: "Council Rumor Mill",
+  hasHappened: "A rumor is spreading through Allied diplomatic circles that Zorbon secretly supports Sagittarian admission.",
+  hasHappenedEffect: (s)=>{ s.sagittarian=clamp(s.sagittarian+8); },
+  actions: [
+    { label:"Publicly deny the rumor", outcomes:[
+      { chance:0.8, preview:"Denial works — Sagittarian -14%", flavor:"Your statement reaches every major diplomatic channel.", effect:(s)=>{ s.sagittarian=clamp(s.sagittarian-14); } },
+      { chance:0.2, preview:"Nobody believes you — Sagittarian +10%", flavor:"The Council dismisses the denial as political theater.", effect:(s)=>{ s.sagittarian=clamp(s.sagittarian+10); } },
+    ]},
+    { label:"Release classified evidence", outcomes:[
+      { chance:0.65, preview:"Evidence convinces them — Sagittarian -20%, Zip Zaps -10", flavor:"The documents prove Zorbon's opposition beyond doubt.", effect:(s)=>{ s.sagittarian=clamp(s.sagittarian-20); s.zipZaps=Math.max(0,s.zipZaps-10); } },
+      { chance:0.35, preview:"Leak backfires — M.I.T.T. +8%", flavor:"The classified documents reveal useful information about Zorbon's defenses.", effect:(s)=>{ s.mitt=clamp(s.mitt+8); } },
+    ]},
+    { label:"Let the rumor spread", outcomes:[
+      { chance:1.0, preview:"Guaranteed — Sagittarian +12%", flavor:"Silence is interpreted as suspicious.", effect:(s)=>{ s.sagittarian=clamp(s.sagittarian+12); } },
+    ]},
+  ]
+}),
+
+new GameEvent({
+  title: "Emergency Fuel Discovery",
+  hasHappened: "Miners on a remote moon have discovered an enormous deposit of fuel.",
+  hasHappenedEffect: null,
+  actions: [
+    { label:"Claim the deposit", outcomes:[
+      { chance:0.8, preview:"Mining succeeds — Zip Zaps +60", flavor:"The new fuel source gives Zorbon a massive economic boost.", effect:(s)=>{ s.zipZaps+=60; } },
+      { chance:0.2, preview:"Mining accident — Zip Zaps -20", flavor:"The deposit proves dangerously unstable.", effect:(s)=>{ s.zipZaps=Math.max(0,s.zipZaps-20); } },
+    ]},
+    { label:"Offer the moon to the Allied Council", outcomes:[
+      { chance:1.0, preview:"Guaranteed — Sagittarian -12%, Zip Zaps +25", flavor:"The generous offer wins diplomatic goodwill and a share of the fuel profits.", effect:(s)=>{ s.sagittarian=clamp(s.sagittarian-12); s.zipZaps+=25; } },
+    ]},
+    { label:"Leave it alone", outcomes:[
+      { chance:1.0, preview:"Guaranteed — nothing changes", flavor:"The miners return home with their discovery still secret.", effect:(s)=>{} },
+    ]},
+  ]
+}),
+
+new GameEvent({
+  title: "The Forehead Eclipse",
+  hasHappened: "A rare celestial alignment has temporarily blocked part of the light from Mitt's Forehead.",
+  hasHappenedEffect: (s)=>{ s.forehead=clamp(s.forehead-10); },
+  actions: [
+    { label:"Build temporary incinerator towers", outcomes:[
+      { chance:0.75, preview:"Success — Forehead -20%, Zip Zaps -20", flavor:"The towers amplify the eclipse's cooling effect.", effect:(s)=>{ s.zipZaps-=20; s.forehead=clamp(s.forehead-20); } },
+      { chance:0.25, preview:"Towers collapse — Forehead +8%", flavor:"The strange gravitational forces destroy the temporary structures.", effect:(s)=>{ s.zipZaps-=20; s.forehead=clamp(s.forehead+8); } },
+    ]},
+    { label:"Celebrate the eclipse", outcomes:[
+      { chance:1.0, preview:"Guaranteed — Sagittarian -6%, Zip Zaps +15", flavor:"The galaxy-wide celebration makes Zorbon look unusually cheerful and united.", effect:(s)=>{ s.sagittarian=clamp(s.sagittarian-6); s.zipZaps+=15; } },
+    ]},
+    { label:"Do nothing", outcomes:[
+      { chance:1.0, preview:"Guaranteed — Forehead +5%", flavor:"The eclipse ends and the Forehead resumes glowing.", effect:(s)=>{ s.forehead=clamp(s.forehead+5); } },
+    ]},
+  ]
+}),
+
+new GameEvent({
+  title: "The Gloongook Medal",
+  hasHappened: "The Allied Council has awarded Commander Gloongook a medal for defending Zorbonian space.",
+  hasHappenedEffect: (s)=>{ s.sagittarian=clamp(s.sagittarian-6); },
+  actions: [
+    { label:"Accept the medal proudly", outcomes:[
+      { chance:1.0, preview:"Guaranteed — Sagittarian -8%, Zip Zaps +20", flavor:"The ceremony becomes a major diplomatic success.", effect:(s)=>{ s.sagittarian=clamp(s.sagittarian-8); s.zipZaps+=20; } },
+    ]},
+    { label:"Donate the medal to a museum", outcomes:[
+      { chance:0.8, preview:"Humility praised — Sagittarian -12%", flavor:"The gesture makes Gloongook even more popular among neutral worlds.", effect:(s)=>{ s.sagittarian=clamp(s.sagittarian-12); } },
+      { chance:0.2, preview:"Public thinks it's insulting — Sagittarian +6%", flavor:"Some ambassadors think the gesture rejects Allied recognition.", effect:(s)=>{ s.sagittarian=clamp(s.sagittarian+6); } },
+    ]},
+    { label:"Sell the medal", outcomes:[
+      { chance:1.0, preview:"Guaranteed — Zip Zaps +50, Sagittarian +15%", flavor:"The medal sells for a fortune, but diplomats are horrified.", effect:(s)=>{ s.zipZaps+=50; s.sagittarian=clamp(s.sagittarian+15); } },
+    ]},
+  ]
+}),
+
+new GameEvent({
+  title: "M.I.T.T. False Retreat",
+  hasHappened: "M.I.T.T. fighters have suddenly abandoned their positions and appear to be retreating.",
+  hasHappenedEffect: null,
+  actions: [
+    { label:"Pursue them", outcomes:[
+      { chance:0.55, preview:"Trap avoided — M.I.T.T. -20%", flavor:"Gloongook catches the retreating fighters before they can regroup.", effect:(s)=>{ s.mitt=clamp(s.mitt-20); } },
+      { chance:0.45, preview:"It's a trap — M.I.T.T. +15%", flavor:"The retreat was a carefully prepared ambush.", effect:(s)=>{ s.mitt=clamp(s.mitt+15); } },
+    ]},
+    { label:"Hold defensive positions", outcomes:[
+      { chance:1.0, preview:"Guaranteed — M.I.T.T. -5%, Zip Zaps +15", flavor:"The enemy wastes fuel maneuvering while your forces remain safe.", effect:(s)=>{ s.mitt=clamp(s.mitt-5); s.zipZaps+=15; } },
+    ]},
+    { label:"Assume they're gone", outcomes:[
+      { chance:1.0, preview:"Guaranteed — M.I.T.T. +10%", flavor:"The fighters return from hiding at full speed.", effect:(s)=>{ s.mitt=clamp(s.mitt+10); } },
+    ]},
+  ]
+}),
+
+new GameEvent({
+  title: "The Allied Science Grant",
+  hasHappened: "A coalition of Allied scientists has offered Zorbon a grant for emergency research.",
+  hasHappenedEffect: null,
+  actions: [
+    { label:"Use it for incinerators", outcomes:[
+      { chance:1.0, preview:"Guaranteed — Forehead -15%", flavor:"Scientists dramatically improve the efficiency of the incinerators.", effect:(s)=>{ s.forehead=clamp(s.forehead-15); } },
+    ]},
+    { label:"Use it for military research", outcomes:[
+      { chance:1.0, preview:"Guaranteed — M.I.T.T. -15%", flavor:"New targeting algorithms give Gloongook's fleet a major advantage.", effect:(s)=>{ s.mitt=clamp(s.mitt-15); } },
+    ]},
+    { label:"Use it for diplomacy research", outcomes:[
+      { chance:1.0, preview:"Guaranteed — Sagittarian -15%", flavor:"Diplomatic analysts discover exactly which arguments sway the Council.", effect:(s)=>{ s.sagittarian=clamp(s.sagittarian-15); } },
+    ]},
+  ]
+}),
+
+new GameEvent({
+  title: "Zorbonian Blackout",
+  hasHappened: "A mysterious power failure has plunged much of Glunkoon into darkness.",
+  hasHappenedEffect: (s)=>{ s.zipZaps=Math.max(0,s.zipZaps-8); },
+  actions: [
+    { label:"Prioritize the incinerators", outcomes:[
+      { chance:0.8, preview:"Power restored — Forehead -12%", flavor:"The incinerators stay online and keep the Forehead under control.", effect:(s)=>{ s.forehead=clamp(s.forehead-12); } },
+      { chance:0.2, preview:"Grid collapses further — Forehead +10%", flavor:"The extra load causes another failure.", effect:(s)=>{ s.forehead=clamp(s.forehead+10); } },
+    ]},
+    { label:"Prioritize the fleet", outcomes:[
+      { chance:0.8, preview:"Fleet protected — M.I.T.T. -12%", flavor:"The fleet's emergency batteries prevent an enemy breakthrough.", effect:(s)=>{ s.mitt=clamp(s.mitt-12); } },
+      { chance:0.2, preview:"Battery failure — M.I.T.T. +10%", flavor:"Several ships lose power at exactly the wrong moment.", effect:(s)=>{ s.mitt=clamp(s.mitt+10); } },
+    ]},
+    { label:"Prioritize the embassy", outcomes:[
+      { chance:0.8, preview:"Diplomacy preserved — Sagittarian -12%", flavor:"Keeping the diplomatic district online prevents a major scandal.", effect:(s)=>{ s.sagittarian=clamp(s.sagittarian-12); } },
+      { chance:0.2, preview:"Diplomats furious — Sagittarian +10%", flavor:"The embassy loses communications and blames Zorbonian leadership.", effect:(s)=>{ s.sagittarian=clamp(s.sagittarian+10); } },
+    ]},
+  ]
+}),
+
+new GameEvent({
+  title: "The Final Warning",
+  hasHappened: "Zorbon intelligence intercepts a message suggesting the M.I.T.T. is preparing one enormous final assault.",
+  hasHappenedEffect: (s)=>{ s.mitt=clamp(s.mitt+8); },
+  actions: [
+    { label:"Launch a preemptive fleet strike (35zz)", outcomes:[
+      { chance:0.65, preview:"Strike succeeds — M.I.T.T. -25%", flavor:"Gloongook's fleet destroys the enemy staging area.", effect:(s)=>{ s.zipZaps-=35; s.mitt=clamp(s.mitt-25); } },
+      { chance:0.35, preview:"Strike fails — M.I.T.T. +15%", flavor:"The M.I.T.T. anticipated the attack and counterattacked.", effect:(s)=>{ s.zipZaps-=35; s.mitt=clamp(s.mitt+15); } },
+    ]},
+    { label:"Fortify everything (30zz)", outcomes:[
+      { chance:1.0, preview:"Guaranteed — M.I.T.T. -12%, Forehead +5%", flavor:"The defensive mobilization protects Glunkoon, but diverts resources from the incinerators.", effect:(s)=>{ s.zipZaps-=30; s.mitt=clamp(s.mitt-12); s.forehead=clamp(s.forehead+5); } },
+    ]},
+    { label:"Trust your pilots", outcomes:[
+      { chance:1.0, preview:"Guaranteed — M.I.T.T. -5%, Zip Zaps +20", flavor:"Gloongook's pilots remain calm and conserve resources for the battle.", effect:(s)=>{ s.mitt=clamp(s.mitt-5); s.zipZaps+=20; } },
+    ]},
+  ]
+}),
+    new GameEvent({
       title: "Incinerator Core Failure",
       hasHappened: "The incinerator core on Glunkoon has failed without warning, mid-burn cycle.",
       hasHappenedEffect: (s)=>{ s.forehead = clamp(s.forehead + 15); },
